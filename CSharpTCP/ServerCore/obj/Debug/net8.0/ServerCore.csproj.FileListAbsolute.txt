@@ -1,0 +1,11 @@
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\bin\Debug\net8.0\ServerCore.deps.json
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\bin\Debug\net8.0\ServerCore.dll
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\bin\Debug\net8.0\ServerCore.pdb
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.GeneratedMSBuildEditorConfig.editorconfig
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.AssemblyInfoInputs.cache
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.AssemblyInfo.cs
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.csproj.CoreCompileInputs.cache
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.dll
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\refint\ServerCore.dll
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.pdb
+C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ref\ServerCore.dll

@@ -1,0 +1,97 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using static Server.PlayerCreateAll;
+
+namespace Server
+{
+    public class SessionManager
+    {
+        public static SessionManager Instance { get; } = new SessionManager();
+
+        object _lock = new object();
+        public Dictionary<long, ClientSession> Sessions = new Dictionary<long, ClientSession>(); // key: 클라이언트 id, value: 클라이언트 세션, 연결된 클라이언트 관리
+        int _sessionId = 0; // 클라이언트 id(1씩 늘어나며 새로 연결한 클라이언트에게 id를 붙여줌)
+
+        // 새 세션 등록
+        public void Add(ClientSession session)
+        {
+            lock (_lock)
+            {
+                session.Info.id = _sessionId++;
+                Sessions.Add(session.Info.id, session); // id 지정하고 딕셔너리에 추가
+
+                // 연결 완료 신호 보냄
+                PlayerInfoOk packet = new PlayerInfoOk() { playerId = session.Info.id };
+                ArraySegment<byte> segment = packet.Write(); // 직렬화
+
+                if (segment != null)
+                    session.Send(segment);
+
+                // 먼저 접속해 있던 플레이어의 오브젝트들 생성하라고 전송
+                List<PlayerInfo> infoList = new List<PlayerInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
+                foreach (ClientSession item in Sessions.Values)
+                {
+                    if (item.Info.id == session.Info.id)
+                        continue;
+
+                    PlayerInfo infoTemp = new PlayerInfo() { id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
+                    infoList.Add(infoTemp);
+                }
+                PlayerCreateAll crAllPacket = new PlayerCreateAll() { playerInfos = infoList };
+                ArraySegment<byte> crSegment = crAllPacket.Write();
+                session.Send(crSegment);
+
+                // 입장 알림 보내기
+                ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 입장하셨습니다." };
+                ArraySegment<byte> chatSegment = chatPacket.Write();
+                BroadcastAll(chatSegment);
+            }
+        }
+
+        // 종료된 세션 제거
+        public void Remove(ClientSession session)
+        {
+            lock (_lock)
+            {
+                if (Sessions.ContainsKey(session.Info.id))
+                    Sessions.Remove(session.Info.id);
+
+                // 퇴장 알림 보내기
+                ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 퇴장하셨습니다." };
+                ArraySegment<byte> chatSegment = chatPacket.Write();
+                BroadcastAll(chatSegment);
+            }
+        }
+
+        // 브로드캐스트 (모든 세션에 패킷을 보냄)
+        public void BroadcastAll(ArraySegment<byte> data)
+        {
+            lock (_lock)
+            {
+                foreach (var session in Sessions.Values)
+                {
+                    Console.WriteLine($"Send to {session.Info.id}");
+                    session.Send(data);
+                }
+            }
+        }
+
+        // 브로드캐스트 (특정 한 클라이언트를 제외한 모든 세션에 패킷을 보냄)
+        public void BroadcastExcept(ArraySegment<byte> data, long targetId)
+        {
+            lock (_lock)
+            {
+                foreach (var session in Sessions.Values)
+                {
+                    if (session.Info.id == targetId)
+                        continue;
+
+                    Console.WriteLine($"Send to {session.Info.id}");
+                    session.Send(data);
+                }
+            }
+        }
+    }
+}
