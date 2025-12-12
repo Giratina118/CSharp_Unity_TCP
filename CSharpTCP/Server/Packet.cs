@@ -66,6 +66,11 @@ namespace Server
             this.Z = BitConverter.ToSingle(span.Slice(count, span.Length - count));
             count += sizeof(float); // z좌표
         }
+
+        public float Distance(MyVector3 other)
+        {
+            return MathF.Sqrt((this.X - other.X) * (this.X - other.X) + (this.Y - other.Y) * (this.Y - other.Y) + (this.Z - other.Z) * (this.Z - other.Z));
+        }
     }
 
     // 플레이어 정보(id, 위치)

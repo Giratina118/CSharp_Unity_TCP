@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\MinHyeok\\09_Network\\CSharpTCP\\DummyClient\\DummyClient.csproj": {}
+    "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\DummyClient\\DummyClient.csproj": {}
   },
   "projects": {
-    "C:\\MinHyeok\\09_Network\\CSharpTCP\\DummyClient\\DummyClient.csproj": {
+    "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\DummyClient\\DummyClient.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\MinHyeok\\09_Network\\CSharpTCP\\DummyClient\\DummyClient.csproj",
+        "projectUniqueName": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\DummyClient\\DummyClient.csproj",
         "projectName": "DummyClient",
-        "projectPath": "C:\\MinHyeok\\09_Network\\CSharpTCP\\DummyClient\\DummyClient.csproj",
+        "projectPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\DummyClient\\DummyClient.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "C:\\MinHyeok\\09_Network\\CSharpTCP\\DummyClient\\obj\\",
+        "outputPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\DummyClient\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,8 +32,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\MinHyeok\\09_Network\\CSharpTCP\\ServerCore\\ServerCore.csproj": {
-                "projectPath": "C:\\MinHyeok\\09_Network\\CSharpTCP\\ServerCore\\ServerCore.csproj"
+              "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj": {
+                "projectPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj"
               }
             }
           }
@@ -73,14 +73,14 @@
         }
       }
     },
-    "C:\\MinHyeok\\09_Network\\CSharpTCP\\ServerCore\\ServerCore.csproj": {
+    "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\MinHyeok\\09_Network\\CSharpTCP\\ServerCore\\ServerCore.csproj",
+        "projectUniqueName": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj",
         "projectName": "ServerCore",
-        "projectPath": "C:\\MinHyeok\\09_Network\\CSharpTCP\\ServerCore\\ServerCore.csproj",
+        "projectPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "C:\\MinHyeok\\09_Network\\CSharpTCP\\ServerCore\\obj\\",
+        "outputPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

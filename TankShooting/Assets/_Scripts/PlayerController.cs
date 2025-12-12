@@ -5,11 +5,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    public Transform[] WheelObjects = new Transform[4]; // 바퀴 오브젝트들
+    public Transform[] WheelObjects;   // 바퀴 오브젝트들
+    public MissileController Missile;  // 미사일 프리팹
+    private Button FireMissileButton;
+    public GameObject Cannon;
 
     [SerializeField]
     private bool _isMine = false;      // 본인 오브젝트인지 여부
@@ -25,9 +28,11 @@ public class PlayerController : MonoBehaviour
     private Vector3 _translate;
     private Vector3 _rotate;
 
-
     private void Start()
     {
+        FireMissileButton = GameObject.Find("FireMissileButton").GetComponent<Button>();
+        FireMissileButton.onClick.AddListener(OnClickFireButton);
+
         StartCoroutine(SendMove()); // 위치 정보 갱신
     }
 
@@ -35,6 +40,9 @@ public class PlayerController : MonoBehaviour
     {
         UpdateOtherPos(); // 위치 업데이트 (본인 외의 오브젝트)
         Movement();       // 이동 (본인 오브젝트)
+
+        // 휠 입력받아 캐논 부분 바꾸기
+        float scrollWheel = Input.GetAxis("Mouse ScrollWheel");
     }
 
     // 플레이어 오브젝트 초기화
@@ -63,12 +71,12 @@ public class PlayerController : MonoBehaviour
         if (_isUpdatePos) // 1초에 4번 값 받아왔을 때만 작동
         {
             _isUpdatePos = false;
-            _beforeInfo.position.FromVector3(transform.position);
-            _beforeInfo.rotation.FromVector3(transform.rotation.eulerAngles);
+            _beforeInfo.position = transform.position;
+            _beforeInfo.rotation = transform.rotation.eulerAngles;
 
-            _translate = (_playerInfo.position.ToVector3() - _beforeInfo.position.ToVector3()) / _updateInterval; // 위치값 변화량
-            _rotate = (_playerInfo.rotation.ToVector3() - _beforeInfo.rotation.ToVector3()) / _updateInterval;    // 회전값 변화량
-            _rotate.y = Mathf.DeltaAngle(_beforeInfo.rotation.ToVector3().y, _playerInfo.rotation.ToVector3().y) / _updateInterval; // 0도/360도 부근을 통과할때 역회전이 발생하는 문제 방지
+            _translate = (_playerInfo.position - _beforeInfo.position) / _updateInterval; // 위치값 변화량
+            _rotate = (_playerInfo.rotation - _beforeInfo.rotation) / _updateInterval;    // 회전값 변화량
+            _rotate.y = Mathf.DeltaAngle(_beforeInfo.rotation.y, _playerInfo.rotation.y) / _updateInterval; // 0도/360도 부근을 통과할때 역회전이 발생하는 문제 방지
         }
 
         transform.position += _translate * Time.deltaTime;
@@ -127,11 +135,11 @@ public class PlayerController : MonoBehaviour
 
         PlayerMovePacket movePacket = new PlayerMovePacket();
         movePacket.playerInfo.id = _playerInfo.id;
-        movePacket.playerInfo.position.FromVector3(transform.position);
-        movePacket.playerInfo.rotation.FromVector3(transform.rotation.eulerAngles);
+        movePacket.playerInfo.position = transform.position;
+        movePacket.playerInfo.rotation = transform.rotation.eulerAngles;
 
-        Debug.Log($"pos: {{{movePacket.playerInfo.position.X}, {movePacket.playerInfo.position.Y}, {movePacket.playerInfo.position.Z}}}, " +
-            $"rot: {{{movePacket.playerInfo.rotation.X}, {movePacket.playerInfo.rotation.Y}, {movePacket.playerInfo.rotation.Z}}}");
+        Debug.Log($"pos: {{{movePacket.playerInfo.position.x}, {movePacket.playerInfo.position.y}, {movePacket.playerInfo.position.z}}}, " +
+            $"rot: {{{movePacket.playerInfo.rotation.x}, {movePacket.playerInfo.rotation.y}, {movePacket.playerInfo.rotation.z}}}");
 
         ArraySegment<byte> segment = movePacket.Write();
         ClientProgram.Instance.connector.CurrentSession.Send(segment);
@@ -167,5 +175,12 @@ public class PlayerController : MonoBehaviour
         WheelObjects[1].Rotate(new Vector3(wheelRotateR, 0, 0) * Time.deltaTime);
         WheelObjects[2].Rotate(new Vector3(wheelRotateL, 0, 0) * Time.deltaTime);
         WheelObjects[3].Rotate(new Vector3(wheelRotateR, 0, 0) * Time.deltaTime);
+    }
+
+    public void OnClickFireButton()
+    {
+        // 직접 만들지 말고 서버에 메시지 전송하면 서버에서 모두에게 만듦
+        // 발사한 플레이어의 총구 위치, 바라보는 방향(회전값) 정보 전달
+        Instantiate(Missile, transform.position, Quaternion.identity);
     }
 }

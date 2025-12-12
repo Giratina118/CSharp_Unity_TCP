@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "P9LLr0wE7Y4=",
+  "dgSpecHash": "1AxTZNytVtI=",
   "success": true,
-  "projectFilePath": "C:\\MinHyeok\\09_Network\\CSharpTCP\\DummyClient\\DummyClient.csproj",
+  "projectFilePath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\DummyClient\\DummyClient.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

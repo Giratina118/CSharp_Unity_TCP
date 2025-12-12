@@ -40,10 +40,9 @@ namespace ServerCore
                 // 다음 패킷을 읽을 위치 이동
                 buffer = new ArraySegment<byte>(buffer.Array, buffer.Offset + dataSize, buffer.Count - dataSize);
             }
-
+            
             return processLen;
         }
-
 
         // 컨텐츠에서 사용할 메소드
         public abstract void OnRecvPacket(ArraySegment<byte> buffer);

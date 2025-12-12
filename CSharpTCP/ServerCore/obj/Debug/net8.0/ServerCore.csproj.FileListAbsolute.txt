@@ -9,3 +9,15 @@ C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.dll
 C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\refint\ServerCore.dll
 C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.pdb
 C:\MinHyeok\09_Network\CSharpTCP\ServerCore\obj\Debug\net8.0\ref\ServerCore.dll
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\bin\Debug\net8.0\ServerCore.deps.json
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\bin\Debug\net8.0\ServerCore.dll
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\bin\Debug\net8.0\ServerCore.pdb
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.GeneratedMSBuildEditorConfig.editorconfig
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.AssemblyInfoInputs.cache
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.AssemblyInfo.cs
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.csproj.CoreCompileInputs.cache
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.sourcelink.json
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.dll
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\refint\ServerCore.dll
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ServerCore.pdb
+C:\MinHyeok\Network\CSharp_TCP\CSharpTCP\ServerCore\obj\Debug\net8.0\ref\ServerCore.dll

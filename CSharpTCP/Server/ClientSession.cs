@@ -113,6 +113,10 @@ namespace Server
             PlayerMovePacket playerMovePacket = new PlayerMovePacket();
             playerMovePacket.Read(buffer);
 
+            // 이동, 회전값에 이상이 없는지 검사 후 처리, 문제가 있다면 해당 클라 위치를 롤백처리, 문제가 없다면 다른 클라에게 전송
+            MyVector3 newPos = playerMovePacket.playerInfo.position;
+            Console.WriteLine($"위치 변화량: {Info.position.Distance(newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
+
             Info.position = playerMovePacket.playerInfo.position;
             Info.rotation = playerMovePacket.playerInfo.rotation;
             Console.WriteLine($"playerMovePacket | playerID : {playerMovePacket.playerInfo.id}, " +

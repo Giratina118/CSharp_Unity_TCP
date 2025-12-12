@@ -169,7 +169,7 @@ namespace DummyClient
                 _onCreate = false;
 
                 // 새 캐릭터 생성
-                GameObject newObj = Instantiate(PlayerPrefabs, _newPlayerInfo.position.ToVector3(), Quaternion.identity);
+                GameObject newObj = Instantiate(PlayerPrefabs, _newPlayerInfo.position, Quaternion.identity);
                 newObj.transform.parent = _playerParent.transform;
                 newObj.GetComponent<PlayerController>().SetMine(_isMine, _newPlayerInfo.id);
                 
