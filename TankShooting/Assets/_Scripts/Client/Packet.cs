@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace DummyClient
+namespace Client
 {
     // 패킷 유형
     public enum PacketType
@@ -34,7 +34,6 @@ namespace DummyClient
         Max,
     };
     
-
     // 플레이어 정보(id, 위치)
     public struct PlayerInfo
     {
@@ -42,14 +41,37 @@ namespace DummyClient
         public Vector3 position; // 위치 정보
         public Vector3 rotation; // 회전 정보
 
+        public static bool WriteVector3(Vector3 vec, ref Span<byte> span, ref ushort count)
+        {
+            bool success = true;
+
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.x);
+            count += sizeof(float); // x좌표
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.y);
+            count += sizeof(float); // y좌표
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.z);
+            count += sizeof(float); // z좌표
+            return success;
+        }
+
+        public static void ReadVector3(ref Vector3 vec, ReadOnlySpan<byte> span, ref ushort count)
+        {
+            vec.x = BitConverter.ToSingle(span.Slice(count, span.Length - count));
+            count += sizeof(float); // x좌표
+            vec.y = BitConverter.ToSingle(span.Slice(count, span.Length - count));
+            count += sizeof(float); // y좌표
+            vec.z = BitConverter.ToSingle(span.Slice(count, span.Length - count));
+            count += sizeof(float); // z좌표
+        }
+
         public bool Write(Span<byte> span, ref ushort count)
         {
             bool success = true;
 
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id);
             count += sizeof(long); // id
-            success &= position.WriteByte(span, ref count); // 이동
-            success &= rotation.WriteByte(span, ref count); // 회전
+            success &= WriteVector3(position, ref span, ref count); // 이동
+            success &= WriteVector3(rotation, ref span, ref count); // 회전
 
             return success;
         }
@@ -58,8 +80,8 @@ namespace DummyClient
         {
             id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
             count += sizeof(long); // id
-            position.ReadByte(span, ref count); // 이동
-            rotation.ReadByte(span, ref count); // 회전
+            ReadVector3(ref position, span, ref count); // 이동
+            ReadVector3(ref rotation, span, ref count); // 회전
         }
     }
 
@@ -80,10 +102,7 @@ namespace DummyClient
         public long playerId; // 플레이어 아이디
         public string name;   // 이름(닉네임)
 
-        public PlayerInfoReq()
-        {
-            this.packetType = (ushort)PacketType.PlayerInfoReq;
-        }
+        public PlayerInfoReq() { this.packetType = (ushort)PacketType.PlayerInfoReq; }
 
         // 인터페이스 구현
         public override ArraySegment<byte> Write()
@@ -138,10 +157,7 @@ namespace DummyClient
     {
         public long playerId; // 플레이어 아이디
 
-        public PlayerInfoOk()
-        {
-            this.packetType = (ushort)PacketType.PlayerInfoOk;
-        }
+        public PlayerInfoOk() { this.packetType = (ushort)PacketType.PlayerInfoOk; }
 
         public override ArraySegment<byte> Write()
         {
@@ -186,10 +202,7 @@ namespace DummyClient
         public long playerId;      // 어떤 유저를
         public ushort messageType; // 생성 혹은 삭제할지
 
-        public PlayerCreateRemovePacket()
-        {
-            this.packetType = (ushort)PacketType.CreateRemove;
-        }
+        public PlayerCreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
 
         public override ArraySegment<byte> Write()
         {
@@ -293,10 +306,7 @@ namespace DummyClient
     {
         public PlayerInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
 
-        public PlayerMovePacket()
-        {
-            this.packetType = (ushort)PacketType.Move;
-        }
+        public PlayerMovePacket() { this.packetType = (ushort)PacketType.Move; }
 
         public override ArraySegment<byte> Write()
         {
@@ -340,10 +350,7 @@ namespace DummyClient
         public long playerId; // 플레이어 아이디
         public string chat;   // 채팅 내용
 
-        public ChatPacket()
-        {
-            this.packetType = (ushort)PacketType.Chat;
-        }
+        public ChatPacket() { this.packetType = (ushort)PacketType.Chat; }
 
         // 인터페이스 구현
         public override ArraySegment<byte> Write()

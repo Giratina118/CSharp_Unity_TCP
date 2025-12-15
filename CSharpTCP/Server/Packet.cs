@@ -37,6 +37,7 @@ namespace Server
         Max,
     };
 
+    /*
     public struct MyVector3
     {
         public float X;
@@ -72,13 +73,39 @@ namespace Server
             return MathF.Sqrt((this.X - other.X) * (this.X - other.X) + (this.Y - other.Y) * (this.Y - other.Y) + (this.Z - other.Z) * (this.Z - other.Z));
         }
     }
+    */
+
+
 
     // 플레이어 정보(id, 위치)
     public struct PlayerInfo
     {
         public long id; // id
-        public MyVector3 position; // 위치 정보
-        public MyVector3 rotation; // 회전 정보
+        public Vector3 position; // 위치 정보
+        public Vector3 rotation; // 회전 정보
+
+        public static bool WriteVector3(Vector3 vec, ref Span<byte> span, ref ushort count)
+        {
+            bool success = true;
+
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.X);
+            count += sizeof(float); // x좌표
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.Y);
+            count += sizeof(float); // y좌표
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.Z);
+            count += sizeof(float); // z좌표
+            return success;
+        }
+
+        public static void ReadVector3(ref Vector3 vec, ReadOnlySpan<byte> span, ref ushort count)
+        {
+            vec.X = BitConverter.ToSingle(span.Slice(count, span.Length - count));
+            count += sizeof(float); // x좌표
+            vec.Y = BitConverter.ToSingle(span.Slice(count, span.Length - count));
+            count += sizeof(float); // y좌표
+            vec.Z = BitConverter.ToSingle(span.Slice(count, span.Length - count));
+            count += sizeof(float); // z좌표
+        }
 
         public bool Write(Span<byte> span, ref ushort count)
         {
@@ -86,8 +113,8 @@ namespace Server
 
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id);
             count += sizeof(long);  // id
-            success &= position.Write(span, ref count); // 이동
-            success &= rotation.Write(span, ref count); // 회전
+            success &= WriteVector3(position, ref span, ref count); // 이동
+            success &= WriteVector3(rotation, ref span, ref count); // 회전
 
             return success;
         }
@@ -96,8 +123,8 @@ namespace Server
         {
             id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
             count += sizeof(long);  // id
-            position.Read(span, ref count); // 이동
-            rotation.Read(span, ref count); // 회전
+            ReadVector3(ref position, span, ref count); // 이동
+            ReadVector3(ref rotation, span, ref count); // 회전
         }
     }
 

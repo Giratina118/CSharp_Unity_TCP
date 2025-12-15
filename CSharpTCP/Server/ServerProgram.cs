@@ -50,7 +50,8 @@ namespace Server
             // 접속 할 때 까지 대기하기 위한 while
             while (true)
             {
-                
+
+
             }
         }
     }

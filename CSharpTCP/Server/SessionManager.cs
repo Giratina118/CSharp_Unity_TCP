@@ -12,7 +12,7 @@ namespace Server
 
         object _lock = new object();
         public Dictionary<long, ClientSession> Sessions = new Dictionary<long, ClientSession>(); // key: 클라이언트 id, value: 클라이언트 세션, 연결된 클라이언트 관리
-        int _sessionId = 0; // 클라이언트 id(1씩 늘어나며 새로 연결한 클라이언트에게 id를 붙여줌)
+        int _sessionId = 0; // 클라이언트 id가 1씩 늘어나며 새로 연결한 클라이언트에게 id를 붙여줌)
 
         // 새 세션 등록
         public void Add(ClientSession session)

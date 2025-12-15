@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace DummyClient
+namespace Client
 {
     class ServerSession : PacketSession
     {

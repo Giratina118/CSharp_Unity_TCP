@@ -17,6 +17,10 @@ namespace Server
 
         public PlayerInfo Info = new PlayerInfo();
 
+        private float _moveSpeed = 3.0f;       // 이동 속도
+        private float _updateInterval = 0.25f * 1000; // 갱신 간격
+        private DateTime _beforeRequestTime;
+
         // 연결되면 실행
         public override void OnConnected(EndPoint endPoint)
         {
@@ -114,8 +118,39 @@ namespace Server
             playerMovePacket.Read(buffer);
 
             // 이동, 회전값에 이상이 없는지 검사 후 처리, 문제가 있다면 해당 클라 위치를 롤백처리, 문제가 없다면 다른 클라에게 전송
-            MyVector3 newPos = playerMovePacket.playerInfo.position;
+            Vector3 newPos = playerMovePacket.playerInfo.position;
             Console.WriteLine($"위치 변화량: {Info.position.Distance(newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
+
+            bool _isrollback = false;
+
+            // 요청 주기가 지나치게 짧은 경우 롤백
+            TimeSpan interval = DateTime.Now - _beforeRequestTime;
+            Console.WriteLine($"{interval.Milliseconds} {_beforeRequestTime}");
+            if (interval.Milliseconds < _updateInterval * 0.9f)
+            {
+                // 로그 출력
+                Console.WriteLine("Frequent Request");
+                _isrollback = true;
+            }
+            _beforeRequestTime = DateTime.Now;
+
+            // 속도가 기준치보다 높은 경우 롤백
+            float limitSpeed = _moveSpeed * _updateInterval * 1.1f;
+            if (Info.position.Distance(newPos) > limitSpeed)
+            {
+                // 로그 출력
+                Console.WriteLine("Abnormal Movement");
+                _isrollback = true;
+            }
+
+            if (_isrollback)
+            {
+                playerMovePacket.playerInfo = Info;
+                ArraySegment<byte> rollbackSegment = playerMovePacket.Write();
+                Send(rollbackSegment);
+                return;
+            }
+
 
             Info.position = playerMovePacket.playerInfo.position;
             Info.rotation = playerMovePacket.playerInfo.rotation;

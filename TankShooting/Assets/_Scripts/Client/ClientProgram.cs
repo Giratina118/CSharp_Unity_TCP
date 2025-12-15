@@ -15,7 +15,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Random = System.Random;
 
-namespace DummyClient
+namespace Client
 {
     class ClientProgram : MonoBehaviour
     {
