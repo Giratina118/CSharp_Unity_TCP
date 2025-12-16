@@ -1089,7 +1089,7 @@ MonoBehaviour:
   ChatInputField: {fileID: 2056325705}
   ChatContent: {fileID: 2079791817}
   ChatScrollbar: {fileID: 155646620}
-  PlayerPrefabs: {fileID: 2777547997425769370, guid: 55040de217dafe447b5672043c7434eb, type: 3}
+  PlayerPrefabs: {fileID: 7096042255962015865, guid: 55040de217dafe447b5672043c7434eb, type: 3}
   ClientId: 0
   NickName: 
 --- !u!1 &705507993
@@ -3114,7 +3114,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -150, y: 140}
+  m_AnchoredPosition: {x: -150, y: 150}
   m_SizeDelta: {x: 160, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1999224245

@@ -31,81 +31,21 @@ namespace Server
     // 메세지 유형
     enum MsgType
     {
-        Create = 1, // 플레이어 오브젝트 생성
-        Remove,     // 플레이어 오브젝트 삭제
+        Create = 1,  // 플레이어 오브젝트 생성
+        Remove,      // 플레이어 오브젝트 삭제
+        PlayerMove,  // 플레이어 이동
+        MonsterMove, // 몬스터 이동
+        MissileMove, // 미사일 이동
 
         Max,
     };
 
-    /*
-    public struct MyVector3
-    {
-        public float X;
-        public float Y;
-        public float Z;
-
-        public bool Write(Span<byte> span, ref ushort count)
-        {
-            bool success = true;
-
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.X);
-            count += sizeof(float); // x좌표
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.Y);
-            count += sizeof(float); // y좌표
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.Z);
-            count += sizeof(float); // z좌표
-
-            return success;
-        }
-
-        public void Read(ReadOnlySpan<byte> span, ref ushort count)
-        {
-            this.X = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float); // x좌표
-            this.Y = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float); // y좌표
-            this.Z = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float); // z좌표
-        }
-
-        public float Distance(MyVector3 other)
-        {
-            return MathF.Sqrt((this.X - other.X) * (this.X - other.X) + (this.Y - other.Y) * (this.Y - other.Y) + (this.Z - other.Z) * (this.Z - other.Z));
-        }
-    }
-    */
-
-
-
     // 플레이어 정보(id, 위치)
-    public struct PlayerInfo
+    public struct ObjectInfo
     {
         public long id; // id
         public Vector3 position; // 위치 정보
         public Vector3 rotation; // 회전 정보
-
-        public static bool WriteVector3(Vector3 vec, ref Span<byte> span, ref ushort count)
-        {
-            bool success = true;
-
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.X);
-            count += sizeof(float); // x좌표
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.Y);
-            count += sizeof(float); // y좌표
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), vec.Z);
-            count += sizeof(float); // z좌표
-            return success;
-        }
-
-        public static void ReadVector3(ref Vector3 vec, ReadOnlySpan<byte> span, ref ushort count)
-        {
-            vec.X = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float); // x좌표
-            vec.Y = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float); // y좌표
-            vec.Z = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float); // z좌표
-        }
 
         public bool Write(Span<byte> span, ref ushort count)
         {
@@ -113,8 +53,8 @@ namespace Server
 
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id);
             count += sizeof(long);  // id
-            success &= WriteVector3(position, ref span, ref count); // 이동
-            success &= WriteVector3(rotation, ref span, ref count); // 회전
+            success &= Utils.WriteVector3(position, ref span, ref count); // 이동
+            success &= Utils.WriteVector3(rotation, ref span, ref count); // 회전
 
             return success;
         }
@@ -123,8 +63,8 @@ namespace Server
         {
             id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
             count += sizeof(long);  // id
-            ReadVector3(ref position, span, ref count); // 이동
-            ReadVector3(ref rotation, span, ref count); // 회전
+            Utils.ReadVector3(ref position, span, ref count); // 이동
+            Utils.ReadVector3(ref rotation, span, ref count); // 회전
         }
     }
 
@@ -145,12 +85,8 @@ namespace Server
         public long playerId; // 플레이어 아이디
         public string name;   // 이름(닉네임)
 
-        public PlayerInfoReq()
-        {
-            this.packetType = (ushort)PacketType.PlayerInfoReq;
-        }
+        public PlayerInfoReq() { this.packetType = (ushort)PacketType.PlayerInfoReq; }
 
-        // 인터페이스 구현
         public override ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);
@@ -205,10 +141,7 @@ namespace Server
     {
         public long playerId; // 플레이어 아이디
 
-        public PlayerInfoOk()
-        {
-            this.packetType = (ushort)PacketType.PlayerInfoOk;
-        }
+        public PlayerInfoOk() { this.packetType = (ushort)PacketType.PlayerInfoOk; }
 
         public override ArraySegment<byte> Write()
         {
@@ -253,10 +186,7 @@ namespace Server
         public long playerId;      // 어떤 유저를
         public ushort messageType; // 생성 혹은 삭제할지
 
-        public PlayerCreateRemovePacket()
-        {
-            this.packetType = (ushort)PacketType.CreateRemove;
-        }
+        public PlayerCreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
 
         public override ArraySegment<byte> Write()
         {
@@ -269,7 +199,7 @@ namespace Server
 
             count += sizeof(ushort); // 패킷 사이즈
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType); // 패킷 종류
-            count += sizeof(ushort); // 패킷 아이디
+            count += sizeof(ushort); // 패킷 유형
 
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerId); // 플레이어 id
             count += sizeof(long);   // 플레이어 아이디
@@ -303,7 +233,7 @@ namespace Server
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
     class PlayerCreateAll : Packet
     {
-        public List<PlayerInfo> playerInfos = new List<PlayerInfo>();
+        public List<ObjectInfo> playerInfos = new List<ObjectInfo>();
 
         public PlayerCreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
 
@@ -323,8 +253,8 @@ namespace Server
             // 구조체 리스트 id, 좌표 쓰기
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)playerInfos.Count);
             count += sizeof(ushort);
-            foreach (PlayerInfo infos in playerInfos)
-                infos.Write(span, ref count);
+            foreach (ObjectInfo infos in playerInfos)
+                success &= infos.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
 
@@ -348,7 +278,7 @@ namespace Server
             count += sizeof(ushort);
             for (int i = 0; i < infoLen; i++)
             {
-                PlayerInfo info = new PlayerInfo();
+                ObjectInfo info = new ObjectInfo();
                 info.Read(span, ref count);
                 playerInfos.Add(info);
             }
@@ -356,14 +286,12 @@ namespace Server
     }
 
     // 플레이어 이동(위치, 회전 정보) 관리
-    class PlayerMovePacket : Packet
+    class MovePacket : Packet
     {
-        public PlayerInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
+        public ushort messageType;
+        public ObjectInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
 
-        public PlayerMovePacket()
-        {
-            this.packetType = (ushort)PacketType.Move;
-        }
+        public MovePacket() { this.packetType = (ushort)PacketType.Move; }
 
         public override ArraySegment<byte> Write()
         {
@@ -377,6 +305,8 @@ namespace Server
             count += sizeof(ushort); // 패킷 사이즈
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
             count += sizeof(ushort); // 패킷 유형
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            count += sizeof(ushort); // 메시지 타입(어느 오브젝트가 이동하는지)
 
             playerInfo.Write(span, ref count);
 
@@ -397,6 +327,9 @@ namespace Server
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 유형
 
+            this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            count += sizeof(ushort); // 메시지 타입
+
             playerInfo.Read(span, ref count);
         }
     }
@@ -407,12 +340,8 @@ namespace Server
         public long playerId; // 플레이어 아이디
         public string chat;   // 채팅 내용
 
-        public ChatPacket()
-        {
-            this.packetType = (ushort)PacketType.Chat;
-        }
+        public ChatPacket() { this.packetType = (ushort)PacketType.Chat; }
 
-        // 인터페이스 구현
         public override ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);

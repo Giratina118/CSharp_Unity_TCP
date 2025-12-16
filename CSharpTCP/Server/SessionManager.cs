@@ -30,16 +30,16 @@ namespace Server
                     session.Send(segment);
 
                 // 먼저 접속해 있던 플레이어의 오브젝트들 생성하라고 전송
-                List<PlayerInfo> infoList = new List<PlayerInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
+                List<ObjectInfo> playerInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
                 foreach (ClientSession item in Sessions.Values)
                 {
                     if (item.Info.id == session.Info.id)
                         continue;
 
-                    PlayerInfo infoTemp = new PlayerInfo() { id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
-                    infoList.Add(infoTemp);
+                    ObjectInfo infoTemp = new ObjectInfo() { id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
+                    playerInfoList.Add(infoTemp);
                 }
-                PlayerCreateAll crAllPacket = new PlayerCreateAll() { playerInfos = infoList };
+                PlayerCreateAll crAllPacket = new PlayerCreateAll() { playerInfos = playerInfoList };
                 ArraySegment<byte> crSegment = crAllPacket.Write();
                 session.Send(crSegment);
 
@@ -72,7 +72,7 @@ namespace Server
             {
                 foreach (var session in Sessions.Values)
                 {
-                    Console.WriteLine($"Send to {session.Info.id}");
+                    Console.WriteLine($"{session.Info.id} -> Server -> All");
                     session.Send(data);
                 }
             }
@@ -88,7 +88,7 @@ namespace Server
                     if (session.Info.id == targetId)
                         continue;
 
-                    Console.WriteLine($"Send to {session.Info.id}");
+                    Console.WriteLine($"{session.Info.id} -> Server -> All (except {session.Info.id})");
                     session.Send(data);
                 }
             }

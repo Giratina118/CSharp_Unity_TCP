@@ -19,8 +19,8 @@ public class PlayerController : MonoBehaviour
     private bool _isMine = false;      // 본인 오브젝트인지 여부
     private bool _isRollbackPos = false;
     [SerializeField]
-    private PlayerInfo _playerInfo;    // 플레이어 아이디, 위치, 회전 정보
-    private PlayerInfo _beforeInfo;    // 플레이어 아이디, 위치, 회전 정보
+    private ObjectInfo _playerInfo;    // 플레이어 아이디, 위치, 회전 정보
+    private ObjectInfo _beforeInfo;    // 플레이어 아이디, 위치, 회전 정보
 
     private bool _isUpdatePos = false; // 업데이트 여부
     [SerializeField]
@@ -70,11 +70,12 @@ public class PlayerController : MonoBehaviour
     }
 
     // 다른 플레이어 위치 업데이트 트리거
-    public void OnTriggerUpdateOtherPos(PlayerInfo info)
+    public void OnTriggerUpdateOtherPos(ObjectInfo info)
     {
-        Debug.Log($"{_playerInfo.id}, pos: {info.position}, rot: {info.rotation}");
+        Debug.Log($"Update Other Pos | my id: {_playerInfo.id}, recv id: {info.id}");
+
         _isUpdatePos = true;
-        if (_playerInfo.id == info.id)
+        if (_isMine) // 자신의 위치값이 들어온 경우는 롤백된 상황
             _isRollbackPos = true;
 
         _playerInfo.position = info.position;
@@ -86,8 +87,10 @@ public class PlayerController : MonoBehaviour
     {
         if (_isMine)
         {
-            if (!_isRollbackPos)
+            if (!_isRollbackPos) // 롤백이 아니면 넘김
                 return;
+
+            Debug.Log("롤백");
             _isRollbackPos = false;
             transform.position = _playerInfo.position;
             transform.rotation = Quaternion.Euler(_playerInfo.rotation);
@@ -158,7 +161,8 @@ public class PlayerController : MonoBehaviour
         // 자신의 위치 서버에 전송(서버에 등록 -> 서버에서 다른 클라에 전송)
         yield return new WaitForSecondsRealtime(_updateInterval); // 1초에 4번 전송
 
-        PlayerMovePacket movePacket = new PlayerMovePacket();
+        MovePacket movePacket = new MovePacket();
+        movePacket.messageType = (ushort)MsgType.PlayerMove;
         movePacket.playerInfo.id = _playerInfo.id;
         movePacket.playerInfo.position = transform.position;
         movePacket.playerInfo.rotation = transform.rotation.eulerAngles;

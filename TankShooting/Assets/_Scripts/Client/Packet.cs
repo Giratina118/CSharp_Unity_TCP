@@ -28,14 +28,17 @@ namespace Client
     // 메시지 유형
     enum MsgType
     {
-        Create = 1, // 플레이어 오브젝트 생성
-        Remove,     // 플레이어 오브젝트 삭제
+        Create = 1,  // 플레이어 오브젝트 생성
+        Remove,      // 플레이어 오브젝트 삭제
+        PlayerMove,  // 플레이어 이동
+        MonsterMove, // 몬스터 이동
+        MissileMove, // 미사일 이동
 
         Max,
     };
     
     // 플레이어 정보(id, 위치)
-    public struct PlayerInfo
+    public struct ObjectInfo
     {
         public long id; // id
         public Vector3 position; // 위치 정보
@@ -104,7 +107,6 @@ namespace Client
 
         public PlayerInfoReq() { this.packetType = (ushort)PacketType.PlayerInfoReq; }
 
-        // 인터페이스 구현
         public override ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);
@@ -248,7 +250,7 @@ namespace Client
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
     class PlayerCreateAll : Packet
     {
-        public List<PlayerInfo> playerInfos = new List<PlayerInfo>();
+        public List<ObjectInfo> playerInfos = new List<ObjectInfo>();
 
         public PlayerCreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
 
@@ -269,7 +271,7 @@ namespace Client
             // 구조체 리스트 id, 좌표 쓰기
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)playerInfos.Count);
             count += sizeof(ushort);
-            foreach (PlayerInfo infos in playerInfos)
+            foreach (ObjectInfo infos in playerInfos)
                 infos.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
@@ -294,7 +296,7 @@ namespace Client
             count += sizeof(ushort);
             for (int i = 0; i < infoLen; i++)
             {
-                PlayerInfo info = new PlayerInfo();
+                ObjectInfo info = new ObjectInfo();
                 info.Read(span, ref count);
                 playerInfos.Add(info);
             }
@@ -302,11 +304,12 @@ namespace Client
     }
 
     // 플레이어 이동(위치 정보) 관리
-    class PlayerMovePacket : Packet
+    class MovePacket : Packet
     {
-        public PlayerInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
+        public ushort messageType;
+        public ObjectInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
 
-        public PlayerMovePacket() { this.packetType = (ushort)PacketType.Move; }
+        public MovePacket() { this.packetType = (ushort)PacketType.Move; }
 
         public override ArraySegment<byte> Write()
         {
@@ -320,6 +323,8 @@ namespace Client
             count += sizeof(ushort); // 패킷 사이즈
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
             count += sizeof(ushort); // 패킷 유형
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            count += sizeof(ushort); // 메시지 타입(어느 오브젝트가 이동하는지)
 
             playerInfo.Write(span, ref count);
 
@@ -340,6 +345,9 @@ namespace Client
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
 
+            this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            count += sizeof(ushort); // 메시지 타입
+
             playerInfo.Read(span, ref count);
         }
     }
@@ -352,7 +360,6 @@ namespace Client
 
         public ChatPacket() { this.packetType = (ushort)PacketType.Chat; }
 
-        // 인터페이스 구현
         public override ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);

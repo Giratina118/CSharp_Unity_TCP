@@ -22,7 +22,7 @@ namespace Client
         public static ClientProgram Instance { get; private set; }
 
         public Dictionary<long, PlayerController> playerObjDic = new Dictionary<long, PlayerController>(); // 클라(플레이어) 번호, 오브젝트
-        public List<PlayerInfo> infosTemp;    // 모든 캐릭터 생성 시 정보 받아서 저장
+        public List<ObjectInfo> infosTemp;    // 모든 캐릭터 생성 시 정보 받아서 저장
         public TMP_InputField NameInputField; // 닉네임 입력
         public TMP_InputField ChatInputField; // 채팅 입력
         public TMP_Text ChatContent;     // 채팅 로그
@@ -32,7 +32,7 @@ namespace Client
         public long ClientId;   // 본인 id
         public string NickName; // 이름
 
-        private PlayerInfo _newPlayerInfo; // 새로 생성하는 캐릭터 정보
+        private ObjectInfo _newPlayerInfo; // 새로 생성하는 캐릭터 정보
         private string chatTemp;   // 새로 들어온 채팅
 
         private bool _isConnect   = false; // 서버 연결 여부
@@ -118,10 +118,12 @@ namespace Client
             }
         }
 
+
+        // 플레이어 생성/삭제
         // 이미 서버에 들어와있던 모든 플레이어 생성(트리거)
-        public void OnTriggerCreateCharacterAll(List<PlayerInfo> infos)
+        public void OnTriggerCreateCharacterAll(List<ObjectInfo> infos)
         {
-            infosTemp = new List<PlayerInfo>(infos);
+            infosTemp = new List<ObjectInfo>(infos);
             _onCreateAll = true;
         }
 
@@ -148,7 +150,7 @@ namespace Client
         }
 
         // 캐릭터 생성(트리거)
-        public void OnTriggerCreateCharacter(PlayerInfo playerInfo)
+        public void OnTriggerCreateCharacter(ObjectInfo playerInfo)
         {
             lock (_lock)
             {
@@ -206,6 +208,8 @@ namespace Client
             playerObjDic.Clear();
         }
 
+
+        // 채팅
         // 채팅 전송
         public void SendChatting()
         {

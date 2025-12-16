@@ -14,11 +14,10 @@ namespace Server
     public class ClientSession : PacketSession
     {
         public string Name = ""; // 이름
-
-        public PlayerInfo Info = new PlayerInfo();
+        public ObjectInfo Info = new ObjectInfo();
 
         private float _moveSpeed = 3.0f;       // 이동 속도
-        private float _updateInterval = 0.25f * 1000; // 갱신 간격
+        private float _updateInterval = 0.25f; // 갱신 간격
         private DateTime _beforeRequestTime;
 
         // 연결되면 실행
@@ -50,7 +49,7 @@ namespace Server
         // 패킷 보내면 실행
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine($"Transferred bytes: {numOfBytes}");
+            Console.WriteLine($"OnSend");
         }
 
         // 패킷 받으면 실행
@@ -83,7 +82,7 @@ namespace Server
             PlayerInfoReq playerInfo = new PlayerInfoReq();
             playerInfo.Read(buffer);
 
-            Console.WriteLine($"PlayerInfoReq | playerID : {playerInfo.playerId}, name : {playerInfo.name}\n");
+            Console.WriteLine($"InfoReq | ID : {playerInfo.playerId}, name : {playerInfo.name}\n");
 
             Name = playerInfo.name;
             SessionManager.Instance.Add(this); // 딕셔너리에 클라이언트 추가
@@ -95,7 +94,7 @@ namespace Server
             PlayerInfoOk playerInfo = new PlayerInfoOk();
             playerInfo.Read(buffer);
 
-            Console.WriteLine($"PlayerInfoReq | playerID : {playerInfo.playerId}\n");
+            Console.WriteLine($"InfoOK | ID: {playerInfo.playerId}\n");
         }
 
         // CreateRemove 패킷 받음
@@ -104,7 +103,7 @@ namespace Server
             PlayerCreateRemovePacket crPacket = new PlayerCreateRemovePacket();
             crPacket.Read(buffer);
 
-            Console.WriteLine($"PlayerCreateRemovePacket | playerID : {crPacket.playerId}, messageType : {crPacket.messageType}\n");
+            Console.WriteLine($"CreateRemove | ID: {crPacket.playerId}, messageType: {crPacket.messageType}\n");
 
             ArraySegment<byte> segment = crPacket.Write();
             if (crPacket != null)
@@ -114,51 +113,74 @@ namespace Server
         // Move 패킷 받음
         public void OnRecvMove(ArraySegment<byte> buffer)
         {
-            PlayerMovePacket playerMovePacket = new PlayerMovePacket();
-            playerMovePacket.Read(buffer);
+            MovePacket movePacket = new MovePacket();
+            movePacket.Read(buffer);
+
+            // MovePacket은 플레이어, 몬스터, 총알의 이동을 처리하지만 서버는 플레이어 이외는 받을 일이 없다.
+            if (movePacket.messageType != (ushort)MsgType.PlayerMove)
+                return;
+
+            /*
+            if (_beforeRequestTime == default)
+            {
+                _beforeRequestTime = DateTime.Now;
+
+                Info.position = movePacket.playerInfo.position;
+                Info.rotation = movePacket.playerInfo.rotation;
+
+                return;
+            }
+            */
+
+            Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}");
 
             // 이동, 회전값에 이상이 없는지 검사 후 처리, 문제가 있다면 해당 클라 위치를 롤백처리, 문제가 없다면 다른 클라에게 전송
-            Vector3 newPos = playerMovePacket.playerInfo.position;
-            Console.WriteLine($"위치 변화량: {Info.position.Distance(newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
+            Vector3 newPos = movePacket.playerInfo.position;
+            //Console.WriteLine($"위치 변화량: {Vector3.Distance(Info.position, newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
 
-            bool _isrollback = false;
+            //bool _isrollback = false;
 
             // 요청 주기가 지나치게 짧은 경우 롤백
+            /*
             TimeSpan interval = DateTime.Now - _beforeRequestTime;
-            Console.WriteLine($"{interval.Milliseconds} {_beforeRequestTime}");
-            if (interval.Milliseconds < _updateInterval * 0.9f)
+            Console.WriteLine($"호출 간격: {interval.TotalMilliseconds} {_updateInterval}");
+            if (interval.TotalSeconds < _updateInterval * 0.9f)
             {
                 // 로그 출력
                 Console.WriteLine("Frequent Request");
                 _isrollback = true;
             }
             _beforeRequestTime = DateTime.Now;
+            */
 
             // 속도가 기준치보다 높은 경우 롤백
+            /*
             float limitSpeed = _moveSpeed * _updateInterval * 1.1f;
-            if (Info.position.Distance(newPos) > limitSpeed)
+            if (Vector3.Distance(Info.position, newPos) > limitSpeed)
             {
                 // 로그 출력
                 Console.WriteLine("Abnormal Movement");
                 _isrollback = true;
             }
-
+            */
+            /*
             if (_isrollback)
             {
-                playerMovePacket.playerInfo = Info;
-                ArraySegment<byte> rollbackSegment = playerMovePacket.Write();
+                _isrollback = false;
+                movePacket.playerInfo = Info;
+                ArraySegment<byte> rollbackSegment = movePacket.Write();
                 Send(rollbackSegment);
                 return;
             }
+            */
 
+            Info.position = movePacket.playerInfo.position;
+            Info.rotation = movePacket.playerInfo.rotation;
+            Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, " +
+                $"pos: {{{Info.position.X}, {Info.position.Y}, {Info.position.Z}}}, rot: {{{Info.rotation.X}, {Info.rotation.Y}, {Info.rotation.Z}}}\n");
 
-            Info.position = playerMovePacket.playerInfo.position;
-            Info.rotation = playerMovePacket.playerInfo.rotation;
-            Console.WriteLine($"playerMovePacket | playerID : {playerMovePacket.playerInfo.id}, " +
-                $"pos : {{{Info.position.X}, {Info.position.Y}, {Info.position.Z}}}, rot : {{{Info.rotation.X}, {Info.rotation.Y}, {Info.rotation.Z}}}\n");
-
-            ArraySegment<byte> segment = playerMovePacket.Write();
-            if (playerMovePacket != null)
+            ArraySegment<byte> segment = movePacket.Write();
+            if (movePacket != null)
                 SessionManager.Instance.BroadcastExcept(segment, Info.id); // 본인을 제외한 다른 클라리언트들에 위치정보 전송
         }
 
@@ -168,7 +190,7 @@ namespace Server
             ChatPacket recvChatPacket = new ChatPacket();
             recvChatPacket.Read(buffer);
 
-            Console.WriteLine($"PlayerInfoReq | playerID : {recvChatPacket.playerId}, name : {Name}, chat: {recvChatPacket.chat}\n");
+            Console.WriteLine($"Chat | ID: {recvChatPacket.playerId}, name: {Name}, chat: {recvChatPacket.chat}\n");
 
             // 모든 플레이어들에게 채팅 전송
             string sendChat = SessionManager.Instance.Sessions[recvChatPacket.playerId].Name + ": " + recvChatPacket.chat;

@@ -36,6 +36,19 @@ namespace Server
     {
         static Listener _listener = new Listener();
 
+        static async Task GameLoop()
+        {
+            const int TickMs = 100; // 10 TPS
+            float deltaTime = TickMs / 1000f;
+
+            while (true)
+            {
+                //MonsterManager.Instance.Update(deltaTime);
+
+                await Task.Delay(TickMs);
+            }
+        }
+
         static void Main(string[] args)
         {
             string host = Dns.GetHostName(); // 로컬 호스트 이름 찾기
@@ -47,7 +60,9 @@ namespace Server
             _listener.Init(endPoint, () => { return new ClientSession(); });
             Console.WriteLine("Listening...");
 
-            // 접속 할 때 까지 대기하기 위한 while
+            //Task.Run(GameLoop);
+            //Thread.Sleep(Timeout.Infinite);
+
             while (true)
             {
 

@@ -32,7 +32,7 @@ namespace Client
         // 패킷 보내면 실행
         public override void OnSend(int numOfBytes)
         {
-            Debug.Log($"Transferred bytes: {numOfBytes}");
+            Debug.Log($"OnSend");
         }
 
         // 패킷 받으면 실행
@@ -62,7 +62,7 @@ namespace Client
             PlayerInfoReq playerInfo = new PlayerInfoReq();
             playerInfo.Read(buffer);
 
-            Debug.Log($"PlayerInfoReq | playerID : {playerInfo.playerId}, name : {playerInfo.name}\n");
+            Debug.Log($"InfoReq | ID : {playerInfo.playerId}, name : {playerInfo.name}\n");
 
             // 서버에 이름(닉네임) 전송
             PlayerInfoReq packet = new PlayerInfoReq() { playerId = 0, name = ClientProgram.Instance.NickName };
@@ -78,7 +78,7 @@ namespace Client
             PlayerInfoOk playerInfo = new PlayerInfoOk();
             playerInfo.Read(buffer);
 
-            Debug.Log($"PlayerInfoOk : {playerInfo.playerId}\n");
+            Debug.Log($"InfoOk : {playerInfo.playerId}\n");
             ClientProgram.Instance.ClientId = playerInfo.playerId;
         }
 
@@ -88,12 +88,12 @@ namespace Client
             PlayerCreateRemovePacket crPacket = new PlayerCreateRemovePacket();
             crPacket.Read(buffer);
 
-            Debug.Log($"PlayerCreateRemovePacket | playerID : {crPacket.playerId}, messageType : {crPacket.messageType}\n");
+            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.playerId}, messageType : {crPacket.messageType}\n");
 
             if (crPacket.messageType == (ushort)MsgType.Create)
             {
                 // 플레이어 아이디로 특정 플레이어 생성
-                PlayerInfo playerInfo = new PlayerInfo();
+                ObjectInfo playerInfo = new ObjectInfo();
                 playerInfo.id = crPacket.playerId;
                 ClientProgram.Instance.OnTriggerCreateCharacter(playerInfo);
             }
@@ -118,17 +118,38 @@ namespace Client
         // Move 패킷 받음
         public void OnRecvMove(ArraySegment<byte> buffer)
         {
-            PlayerMovePacket playerMovePacket = new PlayerMovePacket();
-            playerMovePacket.Read(buffer);
-            long id = playerMovePacket.playerInfo.id;
+            MovePacket movePacket = new MovePacket();
+            movePacket.Read(buffer);
 
-            Debug.Log($"playerMovePacket | playerID : {id}, pos : {playerMovePacket.playerInfo.position}, rot : {playerMovePacket.playerInfo.rotation}\n");
+            Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, pos: {movePacket.playerInfo.position}, rot: {movePacket.playerInfo.rotation}\n");
+
+            switch (movePacket.messageType)
+            {
+                case (ushort)MsgType.PlayerMove:
+                    long playerId = movePacket.playerInfo.id;
+                    Debug.Log($"내 id: {ClientProgram.Instance.ClientId},  보낸 사람 id: {playerId}");
+
+                    // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
+                    if (ClientProgram.Instance.playerObjDic[playerId] != null)
+                        ClientProgram.Instance.playerObjDic[playerId].OnTriggerUpdateOtherPos(movePacket.playerInfo);
+                    break;
+
+                case (ushort)MsgType.MonsterMove:
+                    // 몬스터들 갱신
+                    break;
+
+                case (ushort)MsgType.MissileMove:
+                    // 미사일들 갱신
+                    break;
+            }
+
+
+            //long id = movePacket.playerInfo.id;
+            //Debug.Log($"Move | ID : {id}, pos : {movePacket.playerInfo.position}, rot : {movePacket.playerInfo.rotation}\n");
 
             // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
-            if (ClientProgram.Instance.playerObjDic[id] != null)
-            {
-                ClientProgram.Instance.playerObjDic[id].OnTriggerUpdateOtherPos(playerMovePacket.playerInfo);
-            }
+            //if (ClientProgram.Instance.playerObjDic[id] != null)
+            //    ClientProgram.Instance.playerObjDic[id].OnTriggerUpdateOtherPos(movePacket.playerInfo);
         }
 
         // Chat 패킷 받음
@@ -137,7 +158,7 @@ namespace Client
             ChatPacket chatPacket = new ChatPacket();
             chatPacket.Read(buffer);
 
-            Debug.Log($"PlayerInfoReq | playerID : {chatPacket.playerId}, chat: {chatPacket.chat}\n");
+            Debug.Log($"Chat | ID : {chatPacket.playerId}, chat: {chatPacket.chat}\n");
 
             // 채팅창에 업데이트
             ClientProgram.Instance.RecvChatting(chatPacket.chat);
