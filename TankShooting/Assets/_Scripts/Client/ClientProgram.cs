@@ -22,27 +22,34 @@ namespace Client
         public static ClientProgram Instance { get; private set; }
 
         public Dictionary<long, PlayerController> playerObjDic = new Dictionary<long, PlayerController>(); // 클라(플레이어) 번호, 오브젝트
+        public Dictionary<long, GameObject> monsterObjDic = new Dictionary<long, GameObject>(); // 몬스터 번호, 오브젝트
         public List<ObjectInfo> infosTemp;    // 모든 캐릭터 생성 시 정보 받아서 저장
+        public List<ObjectInfo> monsterInfosTemp;    // 모든 몬스터 생성 시 정보 받아서 저장
         public TMP_InputField NameInputField; // 닉네임 입력
         public TMP_InputField ChatInputField; // 채팅 입력
         public TMP_Text ChatContent;     // 채팅 로그
         public Scrollbar ChatScrollbar;  // 채팅 로그 스크롤바
         public GameObject PlayerPrefabs; // 플레이어 오브젝트 프리팹
+        public GameObject MonsterPrefabs; // 몬스터 오브젝트 프리팹
 
         public long ClientId;   // 본인 id
         public string NickName; // 이름
 
         private ObjectInfo _newPlayerInfo; // 새로 생성하는 캐릭터 정보
+        private ObjectInfo _newMonsterInfo; // 새로 생성하는 몬스터 정보
         private string chatTemp;   // 새로 들어온 채팅
 
         private bool _isConnect   = false; // 서버 연결 여부
-        private bool _onCreate    = false; // 단일 캐릭터 생성 트리거
-        private bool _onCreateAll = false; // 모든 캐릭터 생성 트리거
+        private bool _onCreatePlayer    = false; // 단일 캐릭터 생성 트리거
+        private bool _onCreateAllPlayer = false; // 모든 캐릭터 생성 트리거
+        private bool _onCreateMonster = false; // 단일 캐릭터 생성 트리거
+        private bool _onCreateAllMonster = false; // 모든 캐릭터 생성 트리거
         private bool _isMine      = false; // 지금 만드는 캐릭터가 내 캐릭터인지
         private bool _onChat      = false; // 채팅 갱신 정보가 들어왔는지
         private long _exitId = -1; // 나가는 플레이어 아이디(-1일 경우 나가는 플레이어X)
 
         private GameObject _playerParent; // 플레이어들 저장할 empty
+        private GameObject _monsterParent; // 몬스터들 저장할 empty
 
         string host;
         IPHostEntry ipHost;
@@ -63,12 +70,14 @@ namespace Client
             ipAddr = ipHost.AddressList[0];
             endPoint = new IPEndPoint(ipAddr, 7777);
             _playerParent = new GameObject("Players");
+            _monsterParent = new GameObject("Monsters");
         }
 
         private void Update()
         {
             try
             {
+                CreateMonsterAll();    // 모든 몬스터 생성
                 CreateCharacterAll();  // 다른 플레이어 캐릭터 생성
                 CreateCharacter();     // 본인 캐릭터 생성
                 UpdateChatting();      // 채팅 업데이트
@@ -124,13 +133,13 @@ namespace Client
         public void OnTriggerCreateCharacterAll(List<ObjectInfo> infos)
         {
             infosTemp = new List<ObjectInfo>(infos);
-            _onCreateAll = true;
+            _onCreateAllPlayer = true;
         }
 
         // 이미 서버에 들어와있던 모든 플레이어 생성
         public void CreateCharacterAll()
         {
-            if (!_onCreateAll)
+            if (!_onCreateAllPlayer)
                 return;
 
             int idCount = infosTemp.Count;
@@ -146,7 +155,7 @@ namespace Client
             ArraySegment<byte> segment = crPacket.Write();
             connector.CurrentSession.Send(segment);
 
-            _onCreateAll = false;
+            _onCreateAllPlayer = false;
         }
 
         // 캐릭터 생성(트리거)
@@ -156,7 +165,7 @@ namespace Client
             {
                 if (ClientId == playerInfo.id) _isMine = true;
                 else _isMine = false;
-                _onCreate = true;
+                _onCreatePlayer = true;
                 _newPlayerInfo = playerInfo;
             }
         }
@@ -166,9 +175,9 @@ namespace Client
         {
             lock ( _lock)
             {
-                if (!_onCreate)
+                if (!_onCreatePlayer)
                     return;
-                _onCreate = false;
+                _onCreatePlayer = false;
 
                 // 새 캐릭터 생성
                 GameObject newObj = Instantiate(PlayerPrefabs, _newPlayerInfo.position, Quaternion.identity);
@@ -206,6 +215,56 @@ namespace Client
             foreach (var player in playerObjDic)
                 Destroy(player.Value.gameObject);
             playerObjDic.Clear();
+        }
+
+
+        // 몬스터 생성/삭제
+        // 이미 생성되어 있던 모든 몬스터 생성(트리거)
+        public void OnTriggerCreateMonsterAll(List<ObjectInfo> infos)
+        {
+            Debug.Log($"OnTriggerCreateMonsterAll");
+            monsterInfosTemp = infos;
+            _onCreateAllMonster = true;
+        }
+
+        // 이미 생성되어 있던 모든 몬스터 생성
+        public void CreateMonsterAll()
+        {
+            if (!_onCreateAllMonster)
+                return;
+            Debug.Log($"CreateMonsterAll, count: {monsterInfosTemp.Count}");
+            _onCreateAllMonster = false;
+
+            int idCount = monsterInfosTemp.Count;
+            for (int i = 0; i < idCount; i++)
+            {
+                OnTriggerCreateMonster(monsterInfosTemp[i]);
+                CreateMonster();
+            }
+        }
+
+        // 몬스터 생성(트리거)
+        public void OnTriggerCreateMonster(ObjectInfo info)
+        {
+            Debug.Log($"OnTriggerCreateMonster");
+            _onCreateMonster = true;
+            _newMonsterInfo = info;
+        }
+
+        // 몬스터 생성
+        public void CreateMonster()
+        {
+            if (!_onCreateMonster)
+                return;
+            Debug.Log($"CreateMonster");
+            _onCreateMonster = false;
+
+            // 새 몬스터 생성
+            GameObject newMonster = Instantiate(MonsterPrefabs, _newMonsterInfo.position, Quaternion.identity);
+            newMonster.transform.parent = _monsterParent.transform;
+
+            // 딕셔너리에 새 캐릭터 추가
+            monsterObjDic.Add(_newMonsterInfo.id, newMonster);
         }
 
 

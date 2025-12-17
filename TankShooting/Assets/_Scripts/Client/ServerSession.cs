@@ -32,7 +32,7 @@ namespace Client
         // 패킷 보내면 실행
         public override void OnSend(int numOfBytes)
         {
-            Debug.Log($"OnSend");
+            //Debug.Log($"OnSend");
         }
 
         // 패킷 받으면 실행
@@ -107,12 +107,23 @@ namespace Client
         // CreateAll 패킷 받음
         public void OnRecvCreateAll(ArraySegment<byte> buffer)
         {
-            PlayerCreateAll crPacket = new PlayerCreateAll();
+            CreateAll crPacket = new CreateAll();
             crPacket.Read(buffer);
-            Debug.Log("create all");
+            Debug.Log($"create all {(MsgType)crPacket.messageType}");
 
-            // 자신이 들어오기 전 먼저 들어와 있던 플레이어들의 오브젝트 생성
-            ClientProgram.Instance.OnTriggerCreateCharacterAll(crPacket.playerInfos);
+            switch (crPacket.messageType)
+            {
+                case (ushort)MsgType.CreateAllPlayer:
+                    // 자신이 들어오기 전 먼저 들어와 있던 플레이어들의 오브젝트 생성
+                    ClientProgram.Instance.OnTriggerCreateCharacterAll(crPacket.objInfos);
+                    break;
+
+                case (ushort)MsgType.CreateAllMonster:
+                    // 자신이 들어오기 전 먼저 생성되어 있는 모든 몬스터 생성
+                    ClientProgram.Instance.OnTriggerCreateMonsterAll(crPacket.objInfos);
+                    break;
+
+            }
         }
 
         // Move 패킷 받음
@@ -121,35 +132,30 @@ namespace Client
             MovePacket movePacket = new MovePacket();
             movePacket.Read(buffer);
 
-            Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, pos: {movePacket.playerInfo.position}, rot: {movePacket.playerInfo.rotation}\n");
-
+            Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.objInfo.id}, pos: {movePacket.objInfo.position}, rot: {movePacket.objInfo.rotation}\n");
+            long playerId = movePacket.objInfo.id;
             switch (movePacket.messageType)
             {
-                case (ushort)MsgType.PlayerMove:
-                    long playerId = movePacket.playerInfo.id;
+                case (ushort)MsgType.MovePlayer:
                     Debug.Log($"내 id: {ClientProgram.Instance.ClientId},  보낸 사람 id: {playerId}");
 
                     // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
                     if (ClientProgram.Instance.playerObjDic[playerId] != null)
-                        ClientProgram.Instance.playerObjDic[playerId].OnTriggerUpdateOtherPos(movePacket.playerInfo);
+                        ClientProgram.Instance.playerObjDic[playerId].OnTriggerUpdateOtherPos(movePacket.objInfo);
                     break;
 
-                case (ushort)MsgType.MonsterMove:
+                case (ushort)MsgType.RollbackPlayer:
+                    ClientProgram.Instance.playerObjDic[playerId].OnTriggerPlayerRollback(movePacket.objInfo);
+                    break;
+
+                case (ushort)MsgType.MoveMonster:
                     // 몬스터들 갱신
                     break;
 
-                case (ushort)MsgType.MissileMove:
+                case (ushort)MsgType.MoveMissile:
                     // 미사일들 갱신
                     break;
             }
-
-
-            //long id = movePacket.playerInfo.id;
-            //Debug.Log($"Move | ID : {id}, pos : {movePacket.playerInfo.position}, rot : {movePacket.playerInfo.rotation}\n");
-
-            // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
-            //if (ClientProgram.Instance.playerObjDic[id] != null)
-            //    ClientProgram.Instance.playerObjDic[id].OnTriggerUpdateOtherPos(movePacket.playerInfo);
         }
 
         // Chat 패킷 받음

@@ -33,9 +33,14 @@ namespace Server
     {
         Create = 1,  // 플레이어 오브젝트 생성
         Remove,      // 플레이어 오브젝트 삭제
-        PlayerMove,  // 플레이어 이동
-        MonsterMove, // 몬스터 이동
-        MissileMove, // 미사일 이동
+
+        CreateAllPlayer,
+        CreateAllMonster,
+
+        MovePlayer,  // 플레이어 이동
+        MoveMonster, // 몬스터 이동
+        MoveMissile, // 미사일 이동
+        RollbackPlayer, // 플레이어 롤백
 
         Max,
     };
@@ -231,11 +236,12 @@ namespace Server
     }
 
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
-    class PlayerCreateAll : Packet
+    class CreateAll : Packet
     {
+        public ushort messageType; // aptlwl dbgud
         public List<ObjectInfo> playerInfos = new List<ObjectInfo>();
 
-        public PlayerCreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
+        public CreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
 
         public override ArraySegment<byte> Write()
         {
@@ -247,8 +253,10 @@ namespace Server
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType); // 패킷 종류
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
             count += sizeof(ushort); // 패킷 아이디
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 쓰기
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)playerInfos.Count);
@@ -271,6 +279,8 @@ namespace Server
 
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
+            messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 읽기
             playerInfos.Clear();

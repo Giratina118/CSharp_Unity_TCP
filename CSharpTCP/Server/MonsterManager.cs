@@ -14,12 +14,16 @@ namespace Server
         private ushort _curHP;  // 현재 체력
         private float _speed;   // 이동 속도
         private ushort _damage; // 공격력
-        private Vector3 _pos;   // 위치
-        private Vector3 _rot;   // 회전
+        private ushort _point;
+        public Vector3 _pos;   // 위치
+        public Vector3 _rot;   // 회전
 
         public Monster()
         {
-
+            _curHP = _maxHP = 100;
+            _speed = 2.0f;
+            _damage = 5;
+            _rot = Vector3.Zero;
         }
         
         public bool Write(Span<byte> span, ref ushort count)
@@ -98,7 +102,7 @@ namespace Server
     {
         public static MonsterManager Instance { get; } = new MonsterManager();
 
-        Dictionary<int, Monster> _monsters = new Dictionary<int, Monster>();
+        public Dictionary<int, Monster> Monsters = new Dictionary<int, Monster>();
         private ushort _monsterId = 0;
 
         public bool IsSpawning = false;
@@ -109,9 +113,9 @@ namespace Server
         {
             bool success = true;
 
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)_monsters.Count);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)Monsters.Count);
             count += sizeof(ushort); // 딕셔너리 길이
-            foreach (Monster monster in _monsters.Values)
+            foreach (Monster monster in Monsters.Values)
                 success &= monster.Write(span, ref count);
 
             return success;
@@ -134,7 +138,7 @@ namespace Server
         public void Add(Monster monster)
         {
             _monsterId++;
-            _monsters.Add(_monsterId, monster);
+            Monsters.Add(_monsterId, monster);
         }
 
         public void Update(float deltaTime)
@@ -142,6 +146,7 @@ namespace Server
             if (SessionManager.Instance.Sessions.Count == 0)
                 return;
 
+            /*
             _remainTime -= deltaTime;
 
             if (_remainTime <= 0f)
@@ -149,20 +154,20 @@ namespace Server
                 Spawn();
                 _remainTime = _spawnInterval;
             }
+            */
         }
 
-        void Spawn()
+        public void Spawn()
         {
             Monster monster = new Monster
             {
-                _id = _monsterId,
-                // 정보들 넣기
+                _id = _monsterId++,
+                _pos = new Vector3() { X = 10, Y = 0, Z = 10 }
             };
 
-            _monsters.Add(monster._id, monster);
+            Monsters.Add(monster._id, monster);
 
             Console.WriteLine($"Monster Spawned: {monster._id}");
         }
-
     }
 }

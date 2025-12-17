@@ -19,8 +19,13 @@ public class PlayerController : MonoBehaviour
     private bool _isMine = false;      // 본인 오브젝트인지 여부
     private bool _isRollbackPos = false;
     [SerializeField]
+    private long _playerId;
+    [SerializeField]
     private ObjectInfo _playerInfo;    // 플레이어 아이디, 위치, 회전 정보
     private ObjectInfo _beforeInfo;    // 플레이어 아이디, 위치, 회전 정보
+
+    private Vector3 _targetPos;
+    private Quaternion _targetRot;
 
     private bool _isUpdatePos = false; // 업데이트 여부
     [SerializeField]
@@ -32,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private float _wheelSpeed = 150;   // 바퀴 회전 속도
     private Vector3 _translate; // 이동값(보간)
     private Vector3 _rotate;    // 회전값(보간)
+    private float _updateTimer = 0.0f;
 
     [SerializeField]
     private Camera _camera;
@@ -41,8 +47,6 @@ public class PlayerController : MonoBehaviour
         // 미사일 발사 버튼
         FireMissileButton = GameObject.Find("FireMissileButton").GetComponent<Button>();
         FireMissileButton.onClick.AddListener(OnClickFireButton);
-
-        StartCoroutine(SendMove()); // 위치 정보 갱신
     }
 
     void Update()
@@ -55,10 +59,10 @@ public class PlayerController : MonoBehaviour
     }
 
     // 플레이어 오브젝트 초기화
-    public void SetMine(bool isMine, long clientId)
+    public void SetMine(bool isMine, long playerId)
     {
         _isMine = isMine;
-        _playerInfo.id = clientId;
+        _playerId = playerId;
 
         if (isMine)
         {
@@ -66,39 +70,37 @@ public class PlayerController : MonoBehaviour
             _camera.transform.position = new Vector3(0, 2, -2);
             _camera.transform.rotation = Quaternion.Euler(20f, 0f, 0f);
             _camera.transform.SetParent(this.transform);
+
+            if (_isMine)
+                StartCoroutine(SendMove()); // 위치 정보 갱신
         }
     }
 
     // 다른 플레이어 위치 업데이트 트리거
     public void OnTriggerUpdateOtherPos(ObjectInfo info)
     {
-        Debug.Log($"Update Other Pos | my id: {_playerInfo.id}, recv id: {info.id}");
+        if (info.id != _playerId || _isMine)
+            return;
 
-        _isUpdatePos = true;
-        if (_isMine) // 자신의 위치값이 들어온 경우는 롤백된 상황
-            _isRollbackPos = true;
+        Debug.Log($"Update Other Pos | my id: {ClientProgram.Instance.ClientId}, recv id: {info.id}");
 
         _playerInfo.position = info.position;
         _playerInfo.rotation = info.rotation;
+        _isUpdatePos = true;
     }
 
     // 다른 플레이어 위치 업데이트
     public void UpdateOtherPos()
     {
         if (_isMine)
-        {
-            if (!_isRollbackPos) // 롤백이 아니면 넘김
-                return;
+            return;
 
-            Debug.Log("롤백");
-            _isRollbackPos = false;
-            transform.position = _playerInfo.position;
-            transform.rotation = Quaternion.Euler(_playerInfo.rotation);
-        }
+        _updateTimer += Time.deltaTime;
 
         if (_isUpdatePos) // 1초에 4번 값 받아왔을 때만 작동
         {
             _isUpdatePos = false;
+            _updateTimer = 0f; // 갱신 시 타이머 초기화
             _beforeInfo.position = transform.position;
             _beforeInfo.rotation = transform.rotation.eulerAngles;
 
@@ -107,35 +109,27 @@ public class PlayerController : MonoBehaviour
             _rotate.y = Mathf.DeltaAngle(_beforeInfo.rotation.y, _playerInfo.rotation.y) / _updateInterval; // 0도/360도 부근을 통과할때 역회전이 발생하는 문제 방지
         }
 
-        transform.position += _translate * Time.deltaTime;
-        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + _rotate * Time.deltaTime);
-
-        /*
-        if (_isUpdatePos)    // 1초에 4번 값이 들어올 때 (새 타겟 위치/회전 정보 수신)
+        // 0.25초(혹은 _updateInterval) 이상 갱신이 없으면 멈춤
+        if (_updateTimer > _updateInterval)
         {
-            _isUpdatePos = false;
-
-            // 위치
-            _beforePos = transform.position;
-            _targetPos = _playerInfo.position.ToVector3();
-
-            // 회전(Quaternion으로 변환)
-            _beforeRot = transform.rotation;
-            _targetRot = Quaternion.Euler(_playerInfo.rotation.ToVector3());
-
-            _elapsed = 0f;
+            _translate = Vector3.zero;
+            _rotate = Vector3.zero;
         }
 
-        // 시간 증가
-        _elapsed += Time.deltaTime;
-        float t = Mathf.Clamp01(_elapsed / _updateInterval);
+        transform.position += _translate * Time.deltaTime;
+        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + _rotate * Time.deltaTime);
+    }
 
-        // ★ 위치 자연스러운 보간
-        transform.position = Vector3.Lerp(_beforePos, _targetPos, t);
+    public void OnTriggerPlayerRollback(ObjectInfo rollbackInfo)
+    {
+        if (!_isMine) // 롤백이 아니면 넘김
+            return;
 
-        // ★ 회전을 Slerp로 자연스럽게 보간
-        transform.rotation = Quaternion.Slerp(_beforeRot, _targetRot, t);
-        */
+        _isRollbackPos = true;
+
+        Debug.Log("롤백");
+        _playerInfo.position = rollbackInfo.position;
+        _playerInfo.rotation = rollbackInfo.rotation;
     }
 
     // 이동 (본인 오브젝트)
@@ -143,6 +137,14 @@ public class PlayerController : MonoBehaviour
     {
         if (!_isMine)
             return;
+
+        if (_isRollbackPos)
+        {
+            _isRollbackPos = false;
+
+            transform.position = _playerInfo.position;
+            transform.rotation = Quaternion.Euler(_playerInfo.rotation);
+        }
 
         if (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
         {
@@ -162,13 +164,13 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSecondsRealtime(_updateInterval); // 1초에 4번 전송
 
         MovePacket movePacket = new MovePacket();
-        movePacket.messageType = (ushort)MsgType.PlayerMove;
-        movePacket.playerInfo.id = _playerInfo.id;
-        movePacket.playerInfo.position = transform.position;
-        movePacket.playerInfo.rotation = transform.rotation.eulerAngles;
+        movePacket.messageType = (ushort)MsgType.MovePlayer;
+        movePacket.objInfo.id = _playerId;
+        movePacket.objInfo.position = transform.position;
+        movePacket.objInfo.rotation = transform.rotation.eulerAngles;
 
-        Debug.Log($"pos: {{{movePacket.playerInfo.position.x}, {movePacket.playerInfo.position.y}, {movePacket.playerInfo.position.z}}}, " +
-            $"rot: {{{movePacket.playerInfo.rotation.x}, {movePacket.playerInfo.rotation.y}, {movePacket.playerInfo.rotation.z}}}");
+        //Debug.Log($"pos: {{{movePacket.playerInfo.position.x}, {movePacket.playerInfo.position.y}, {movePacket.playerInfo.position.z}}}, " +
+        //    $"rot: {{{movePacket.playerInfo.rotation.x}, {movePacket.playerInfo.rotation.y}, {movePacket.playerInfo.rotation.z}}}");
 
         ArraySegment<byte> segment = movePacket.Write();
         ClientProgram.Instance.connector.CurrentSession.Send(segment);
@@ -178,6 +180,9 @@ public class PlayerController : MonoBehaviour
     // 바퀴 회전
     public void RotateWheel(float h, float v)
     {
+        if (!_isMine)
+            return;
+
         Vector3 rightWheelRotate = Vector3.zero, leftWheelRotate = Vector3.zero;
         float wheelRotateR = 0.0f, wheelRotateL = 0.0f;
 
@@ -208,6 +213,9 @@ public class PlayerController : MonoBehaviour
 
     public void OnClickFireButton()
     {
+        if (!_isMine)
+            return;
+
         // 직접 만들지 말고 서버에 메시지 전송하면 서버에서 모두에게 만듦
         // 발사한 플레이어의 총구 위치, 바라보는 방향(회전값) 정보 전달
         Instantiate(Missile, Muzzle.position, this.transform.rotation);

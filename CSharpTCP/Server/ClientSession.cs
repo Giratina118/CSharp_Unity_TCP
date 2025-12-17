@@ -117,33 +117,25 @@ namespace Server
             movePacket.Read(buffer);
 
             // MovePacket은 플레이어, 몬스터, 총알의 이동을 처리하지만 서버는 플레이어 이외는 받을 일이 없다.
-            if (movePacket.messageType != (ushort)MsgType.PlayerMove)
+            if (movePacket.messageType != (ushort)MsgType.MovePlayer)
                 return;
 
-            /*
-            if (_beforeRequestTime == default)
-            {
-                _beforeRequestTime = DateTime.Now;
+            
+            Vector3 newPos = movePacket.playerInfo.position;
+            Vector3 newRot = movePacket.playerInfo.rotation;
 
-                Info.position = movePacket.playerInfo.position;
-                Info.rotation = movePacket.playerInfo.rotation;
-
-                return;
-            }
-            */
 
             Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}");
 
             // 이동, 회전값에 이상이 없는지 검사 후 처리, 문제가 있다면 해당 클라 위치를 롤백처리, 문제가 없다면 다른 클라에게 전송
-            Vector3 newPos = movePacket.playerInfo.position;
             //Console.WriteLine($"위치 변화량: {Vector3.Distance(Info.position, newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
 
-            //bool _isrollback = false;
+            bool _isrollback = false;
 
             // 요청 주기가 지나치게 짧은 경우 롤백
-            /*
+            
             TimeSpan interval = DateTime.Now - _beforeRequestTime;
-            Console.WriteLine($"호출 간격: {interval.TotalMilliseconds} {_updateInterval}");
+            Console.WriteLine($"호출 간격: {interval.TotalSeconds} {_updateInterval}");
             if (interval.TotalSeconds < _updateInterval * 0.9f)
             {
                 // 로그 출력
@@ -151,31 +143,31 @@ namespace Server
                 _isrollback = true;
             }
             _beforeRequestTime = DateTime.Now;
-            */
+            
 
             // 속도가 기준치보다 높은 경우 롤백
-            /*
             float limitSpeed = _moveSpeed * _updateInterval * 1.1f;
+            Console.WriteLine($"이전 위치: {Info.position}, 새 위치: {newPos}, 이동 거리: {Vector3.Distance(Info.position, newPos)}, 한계 거리: {limitSpeed}");
             if (Vector3.Distance(Info.position, newPos) > limitSpeed)
             {
                 // 로그 출력
                 Console.WriteLine("Abnormal Movement");
                 _isrollback = true;
             }
-            */
-            /*
+            
             if (_isrollback)
             {
                 _isrollback = false;
+                movePacket.messageType = (ushort)MsgType.RollbackPlayer;
                 movePacket.playerInfo = Info;
                 ArraySegment<byte> rollbackSegment = movePacket.Write();
                 Send(rollbackSegment);
                 return;
             }
-            */
+            
 
-            Info.position = movePacket.playerInfo.position;
-            Info.rotation = movePacket.playerInfo.rotation;
+            Info.position = newPos;
+            Info.rotation = newRot;
             Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, " +
                 $"pos: {{{Info.position.X}, {Info.position.Y}, {Info.position.Z}}}, rot: {{{Info.rotation.X}, {Info.rotation.Y}, {Info.rotation.Z}}}\n");
 

@@ -30,9 +30,14 @@ namespace Client
     {
         Create = 1,  // 플레이어 오브젝트 생성
         Remove,      // 플레이어 오브젝트 삭제
-        PlayerMove,  // 플레이어 이동
-        MonsterMove, // 몬스터 이동
-        MissileMove, // 미사일 이동
+
+        CreateAllPlayer,
+        CreateAllMonster,
+
+        MovePlayer,  // 플레이어 이동
+        RollbackPlayer, // 플레이어 롤백
+        MoveMonster, // 몬스터 이동
+        MoveMissile, // 미사일 이동
 
         Max,
     };
@@ -248,11 +253,12 @@ namespace Client
     }
 
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
-    class PlayerCreateAll : Packet
+    class CreateAll : Packet
     {
-        public List<ObjectInfo> playerInfos = new List<ObjectInfo>();
+        public ushort messageType; // 메시지 유형
+        public List<ObjectInfo> objInfos = new List<ObjectInfo>();
 
-        public PlayerCreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
+        public CreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
 
         public override ArraySegment<byte> Write()
         {
@@ -266,12 +272,13 @@ namespace Client
             count += sizeof(ushort); // 패킷 사이즈
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType); // 패킷 종류
             count += sizeof(ushort); // 패킷 아이디
-
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 쓰기
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)playerInfos.Count);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)objInfos.Count);
             count += sizeof(ushort);
-            foreach (ObjectInfo infos in playerInfos)
+            foreach (ObjectInfo infos in objInfos)
                 infos.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
@@ -289,16 +296,18 @@ namespace Client
 
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
+            messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 읽기
-            playerInfos.Clear();
+            objInfos.Clear();
             ushort infoLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort);
             for (int i = 0; i < infoLen; i++)
             {
                 ObjectInfo info = new ObjectInfo();
                 info.Read(span, ref count);
-                playerInfos.Add(info);
+                objInfos.Add(info);
             }
         }
     }
@@ -307,7 +316,7 @@ namespace Client
     class MovePacket : Packet
     {
         public ushort messageType;
-        public ObjectInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
+        public ObjectInfo objInfo; // 플레이어 아이디, 위치, 회전 정보
 
         public MovePacket() { this.packetType = (ushort)PacketType.Move; }
 
@@ -326,7 +335,7 @@ namespace Client
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
             count += sizeof(ushort); // 메시지 타입(어느 오브젝트가 이동하는지)
 
-            playerInfo.Write(span, ref count);
+            objInfo.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
 
@@ -348,7 +357,7 @@ namespace Client
             this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(ushort); // 메시지 타입
 
-            playerInfo.Read(span, ref count);
+            objInfo.Read(span, ref count);
         }
     }
 

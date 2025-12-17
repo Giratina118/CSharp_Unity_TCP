@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using static Server.PlayerCreateAll;
+using static Server.CreateAll;
 
 namespace Server
 {
@@ -39,9 +39,22 @@ namespace Server
                     ObjectInfo infoTemp = new ObjectInfo() { id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
                     playerInfoList.Add(infoTemp);
                 }
-                PlayerCreateAll crAllPacket = new PlayerCreateAll() { playerInfos = playerInfoList };
+                CreateAll crAllPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllPlayer, playerInfos = playerInfoList };
                 ArraySegment<byte> crSegment = crAllPacket.Write();
                 session.Send(crSegment);
+
+
+                // 먼저 생성되어 있던 모든 몬스터 생성하라고 전송
+                List<ObjectInfo> monsterInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
+                foreach (Monster item in MonsterManager.Instance.Monsters.Values)
+                {
+                    ObjectInfo infoTemp = new ObjectInfo() { id = item._id, position = item._pos, rotation = item._rot };
+                    monsterInfoList.Add(infoTemp);
+                }
+                CreateAll createAllMonsterPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllMonster, playerInfos = monsterInfoList };
+                ArraySegment<byte> crMonsterSegment = createAllMonsterPacket.Write();
+                session.Send(crMonsterSegment);
+
 
                 // 입장 알림 보내기
                 ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 입장하셨습니다." };
@@ -88,7 +101,8 @@ namespace Server
                     if (session.Info.id == targetId)
                         continue;
 
-                    Console.WriteLine($"{session.Info.id} -> Server -> All (except {session.Info.id})");
+                    Console.WriteLine($"{targetId} -> Server -> {session.Info.id}");
+
                     session.Send(data);
                 }
             }
