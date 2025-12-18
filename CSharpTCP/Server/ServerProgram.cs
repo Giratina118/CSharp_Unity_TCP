@@ -56,8 +56,7 @@ namespace Server
             IPAddress ipAddr = ipHost.AddressList[0]; // ip 리스트 중에 첫 번째 획득
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777); // ip 특정 포트 번호 접근
 
-            MonsterManager.Instance.Spawn();
-            MonsterManager.Instance.Spawn();
+            MonsterManager.Instance.InitData(); // 몬스터 데이터 받기
 
             // 클라이언트 받기
             _listener.Init(endPoint, () => { return new ClientSession(); });

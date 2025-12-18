@@ -85,23 +85,45 @@ namespace Client
         // CreateRemove 패킷 받음
         public void OnRecvCreateRemove(ArraySegment<byte> buffer)
         {
-            PlayerCreateRemovePacket crPacket = new PlayerCreateRemovePacket();
+            CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
 
             Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.playerId}, messageType : {crPacket.messageType}\n");
 
-            if (crPacket.messageType == (ushort)MsgType.Create)
+            switch ((ushort)crPacket.messageType)
+            {
+                case (ushort)MsgType.CreatePlayer:
+                    // 플레이어 아이디로 특정 플레이어 생성
+                    ObjectInfo playerInfo = new ObjectInfo();
+                    playerInfo.id = crPacket.playerId;
+                    ClientProgram.Instance.OnTriggerCreateCharacter(playerInfo);
+                    break;
+
+                case (ushort)MsgType.RemovePlayer:
+                    // 플레이어 아이디로 특정 플레이어의 오브젝트 삭제
+                    ClientProgram.Instance.OnTriggerRemoveExitCharacter(crPacket.playerId);
+                    break;
+
+                case (ushort)MsgType.CreateMissile:
+                    // 플레이어 아이지로 생성할 미사일 위치, 방향 결정
+                    ClientProgram.Instance.OnTriggerCreateMissile(crPacket.playerId);
+                    break;
+            }
+
+            /*
+            if (crPacket.messageType == (ushort)MsgType.CreatePlayer)
             {
                 // 플레이어 아이디로 특정 플레이어 생성
                 ObjectInfo playerInfo = new ObjectInfo();
                 playerInfo.id = crPacket.playerId;
                 ClientProgram.Instance.OnTriggerCreateCharacter(playerInfo);
             }
-            else if (crPacket.messageType == (ushort)MsgType.Remove)
+            else if (crPacket.messageType == (ushort)MsgType.RemovePlayer)
             {
                 // 플레이어 아이디로 특정 플레이어의 오브젝트 삭제
                 ClientProgram.Instance.OnTriggerRemoveExitCharacter(crPacket.playerId);
             }
+            */
         }
 
         // CreateAll 패킷 받음
@@ -122,7 +144,6 @@ namespace Client
                     // 자신이 들어오기 전 먼저 생성되어 있는 모든 몬스터 생성
                     ClientProgram.Instance.OnTriggerCreateMonsterAll(crPacket.objInfos);
                     break;
-
             }
         }
 

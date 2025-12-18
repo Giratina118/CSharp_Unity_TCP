@@ -28,23 +28,38 @@ namespace Client
     // 메시지 유형
     enum MsgType
     {
-        Create = 1,  // 플레이어 오브젝트 생성
-        Remove,      // 플레이어 오브젝트 삭제
+        CreatePlayer = 1, // 플레이어 오브젝트 생성
+        RemovePlayer,     // 플레이어 오브젝트 삭제
+        CreateMonster,    // 몬스터 오브젝트 생성
+        RemoveMonster,    // 몬스터 오브젝트 삭제
+        CreateMissile,    // 미사일 오브젝트 생성
+        RemoveMissile,    // 미사일 오브젝트 삭제
 
-        CreateAllPlayer,
-        CreateAllMonster,
+        CreateAllPlayer,  // 모든 플레이어 생성(최초 초기화)
+        CreateAllMonster, // 모든 몬스터 생성(최초 초기화)
 
-        MovePlayer,  // 플레이어 이동
+        MovePlayer,     // 플레이어 이동
+        MoveMonster,    // 몬스터 이동
+        MoveMissile,    // 미사일 이동
         RollbackPlayer, // 플레이어 롤백
-        MoveMonster, // 몬스터 이동
-        MoveMissile, // 미사일 이동
 
         Max,
     };
-    
+
+    enum ObjType
+    {
+        Player = 1,
+        Monster_Ray,
+        Monster_Bee,
+        Missile,
+
+        Max,
+    }
+
     // 플레이어 정보(id, 위치)
     public struct ObjectInfo
     {
+        public ushort objType;
         public long id; // id
         public Vector3 position; // 위치 정보
         public Vector3 rotation; // 회전 정보
@@ -76,6 +91,8 @@ namespace Client
         {
             bool success = true;
 
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.objType);
+            count += sizeof(ushort);  // 오브젝트 유형
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id);
             count += sizeof(long); // id
             success &= WriteVector3(position, ref span, ref count); // 이동
@@ -86,6 +103,8 @@ namespace Client
 
         public void Read(ReadOnlySpan<byte> span, ref ushort count)
         {
+            objType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 오브젝트 유형
             id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
             count += sizeof(long); // id
             ReadVector3(ref position, span, ref count); // 이동
@@ -204,12 +223,12 @@ namespace Client
     }
 
     // 유저 오브젝트 생성/삭제 관리
-    class PlayerCreateRemovePacket : Packet
+    class CreateRemovePacket : Packet
     {
         public long playerId;      // 어떤 유저를
         public ushort messageType; // 생성 혹은 삭제할지
 
-        public PlayerCreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
+        public CreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
 
         public override ArraySegment<byte> Write()
         {

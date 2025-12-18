@@ -4,17 +4,18 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static Server.CSVReader;
 
 namespace Server
 {
     public class Monster
     {
         public ushort _id;     // 몬스터 고유 번호
-        private ushort _maxHP;  // 최대 체력
-        private ushort _curHP;  // 현재 체력
-        private float _speed;   // 이동 속도
-        private ushort _damage; // 공격력
-        private ushort _point;
+        private ushort _maxHP; // 최대 체력
+        private ushort _curHP; // 현재 체력
+        private float _speed;  // 이동 속도
+        private ushort _damage;// 공격력
+        private ushort _point; // 처치 시 획득 점수
         public Vector3 _pos;   // 위치
         public Vector3 _rot;   // 회전
 
@@ -24,6 +25,18 @@ namespace Server
             _speed = 2.0f;
             _damage = 5;
             _rot = Vector3.Zero;
+        }
+
+        public Monster(MonsterSpawnData spawnData)
+        {
+            _id = (ushort)spawnData.Type;
+            MonsterData monsterData = MonsterManager.Instance.monsterData[spawnData.Type];
+            _maxHP = _curHP = (ushort)monsterData.Hp;
+            _speed = monsterData.Speed;
+            _damage = (ushort)monsterData.Damage;
+            _point = (ushort)monsterData.Point;
+            _pos = new Vector3(spawnData.xPos, spawnData.yPos, spawnData.zPos);
+            _rot = new Vector3(spawnData.xRot, spawnData.yRot, spawnData.zRot);
         }
         
         public bool Write(Span<byte> span, ref ushort count)
@@ -89,7 +102,6 @@ namespace Server
             }
             else
                 _curHP -= dmg;
-
         }
 
         private void Die()
@@ -103,11 +115,18 @@ namespace Server
         public static MonsterManager Instance { get; } = new MonsterManager();
 
         public Dictionary<int, Monster> Monsters = new Dictionary<int, Monster>();
+        public Dictionary<int, MonsterData> monsterData = new Dictionary<int, MonsterData> ();
+        List<MonsterSpawnData> monsterSpawnDate = new List<MonsterSpawnData> ();
+
         private ushort _monsterId = 0;
 
         public bool IsSpawning = false;
         float _spawnInterval = 5f;   // 5초
         float _remainTime = 5f;
+
+        private const string MonsterDataPath = "MonsterData.csv";
+        private const string MonsterSpawnDataPath = "MonsterSpawnData.csv";
+
 
         public bool Write(Span<byte> span, ref ushort count)
         {
@@ -119,6 +138,18 @@ namespace Server
                 success &= monster.Write(span, ref count);
 
             return success;
+        }
+
+        // 몬스터 정보 초기화
+        public void InitData()
+        {
+            monsterData = LoadMonsterData(MonsterDataPath);
+            monsterSpawnDate = LoadMonsterSpawnData(MonsterSpawnDataPath);
+
+            foreach (MonsterSpawnData spawnData in monsterSpawnDate)
+            {
+                Spawn(spawnData);
+            }
         }
 
         /*
@@ -157,17 +188,13 @@ namespace Server
             */
         }
 
-        public void Spawn()
+        public void Spawn(MonsterSpawnData spawnData)
         {
-            Monster monster = new Monster
-            {
-                _id = _monsterId++,
-                _pos = new Vector3() { X = 10, Y = 0, Z = 10 }
-            };
+            Monster monster = new Monster(spawnData);
 
-            Monsters.Add(monster._id, monster);
+            Add(monster);
 
-            Console.WriteLine($"Monster Spawned: {monster._id}");
+            Console.WriteLine($"Monster Spawned: {_monsterId}  {monsterData[monster._id].Name}");
         }
     }
 }

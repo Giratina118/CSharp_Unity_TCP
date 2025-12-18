@@ -1,0 +1,5 @@
+번호,몬스터 번호,몬스터 키값,체력,속도,공격력,점수
+No.,Monster_Number,Monster_Key,HP,Speed,Damage,Point
+int,int,string,int,float,int,int
+1,1001,Monster_Ray,120,1.5,5,10
+2,2001,Monster_Bee,80,2,10,7

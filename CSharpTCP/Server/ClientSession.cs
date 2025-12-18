@@ -19,6 +19,7 @@ namespace Server
         private float _moveSpeed = 3.0f;       // 이동 속도
         private float _updateInterval = 0.25f; // 갱신 간격
         private DateTime _beforeRequestTime;
+        private int missileNum = 0;
 
         // 연결되면 실행
         public override void OnConnected(EndPoint endPoint)
@@ -39,7 +40,7 @@ namespace Server
             Console.WriteLine($"OnDisconnected : {endPoint}");
 
             // 연결 해제된 플레이어의 오브젝트 제거
-            PlayerCreateRemovePacket packet = new PlayerCreateRemovePacket() { playerId = Info.id, messageType = (ushort)MsgType.Remove };
+            CreateRemovePacket packet = new CreateRemovePacket() { playerId = Info.id, messageType = (ushort)MsgType.RemovePlayer };
             ArraySegment<byte> segment = packet.Write();
             SessionManager.Instance.BroadcastExcept(segment, Info.id);
 
@@ -100,14 +101,36 @@ namespace Server
         // CreateRemove 패킷 받음
         public void OnRecvCreateRemove(ArraySegment<byte> buffer)
         {
-            PlayerCreateRemovePacket crPacket = new PlayerCreateRemovePacket();
+            CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
 
             Console.WriteLine($"CreateRemove | ID: {crPacket.playerId}, messageType: {crPacket.messageType}\n");
 
-            ArraySegment<byte> segment = crPacket.Write();
+            /*
+            switch ((int)crPacket.messageType)
+            {
+                case (int)MsgType.CreatePlayer:
+                    ArraySegment<byte> playerSegment = crPacket.Write();
+                    if (crPacket != null)
+                        SessionManager.Instance.BroadcastAll(playerSegment); // 생성/삭제 모든 클라이언트에 전송
+                    break;
+
+                case (int)MsgType.CreateMissile:
+                    // 미사일 생성 요청 받으면 각 클라에 미사일 띄우기
+                    ArraySegment<byte> missileSegment = crPacket.Write();
+                    if (crPacket != null)
+                        SessionManager.Instance.BroadcastAll(missileSegment); // 생성/삭제 모든 클라이언트에 전송
+                    break;
+            }
+            */
+
+            // 생성/삭제하라고 클라에 전송
+            ArraySegment<byte> missileSegment = crPacket.Write();
             if (crPacket != null)
-                SessionManager.Instance.BroadcastAll(segment); // 생성/삭제 모든 클라이언트에 전송
+            {
+                //MissileManager.Instance.Missiles.Add(missileNum++, new Missile() { _pos =  })
+                SessionManager.Instance.BroadcastAll(missileSegment); // 생성/삭제 모든 클라이언트에 전송
+            }
         }
 
         // Move 패킷 받음

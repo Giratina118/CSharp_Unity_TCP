@@ -1090,7 +1090,10 @@ MonoBehaviour:
   ChatContent: {fileID: 2079791817}
   ChatScrollbar: {fileID: 155646620}
   PlayerPrefabs: {fileID: 7096042255962015865, guid: 55040de217dafe447b5672043c7434eb, type: 3}
-  MonsterPrefabs: {fileID: 2391359435489877134, guid: 75f057b43e0a449dae5f6549f5107474, type: 3}
+  MonsterPrefabs:
+  - {fileID: 2391359435489877134, guid: 73be2d32e1406974b87243c7e13ec870, type: 3}
+  - {fileID: 1467277096911013437, guid: 32017494b33160f4cba9fab2c72daa6b, type: 3}
+  MissilePrefab: {fileID: 7090710131271465290, guid: 3b6f9ec82bd4ffd4aab710fe350e5f32, type: 3}
   ClientId: 0
   NickName: 
 --- !u!1 &705507993
@@ -2169,8 +2172,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 74876334}
   - {fileID: 988957416}
+  - {fileID: 74876334}
   - {fileID: 1999224244}
   m_Father: {fileID: 0}
   m_RootOrder: 3

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MissileController : MonoBehaviour
 {
-    private float _speed = 5.0f;
+    private float _speed = 10.0f;
     private int _damage = 5;
 
     private void Start()

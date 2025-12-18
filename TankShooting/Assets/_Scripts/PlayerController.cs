@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private long _playerId;
     [SerializeField]
-    private ObjectInfo _playerInfo;    // 플레이어 아이디, 위치, 회전 정보
+    public ObjectInfo _playerInfo;    // 플레이어 아이디, 위치, 회전 정보
     private ObjectInfo _beforeInfo;    // 플레이어 아이디, 위치, 회전 정보
 
     private Vector3 _targetPos;
@@ -120,6 +120,7 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + _rotate * Time.deltaTime);
     }
 
+    // 롤백 트리거
     public void OnTriggerPlayerRollback(ObjectInfo rollbackInfo)
     {
         if (!_isMine) // 롤백이 아니면 넘김
@@ -158,6 +159,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // 위치 정보 서버에 전송
     IEnumerator SendMove()
     {
         // 자신의 위치 서버에 전송(서버에 등록 -> 서버에서 다른 클라에 전송)
@@ -211,6 +213,7 @@ public class PlayerController : MonoBehaviour
         WheelObjects[3].Rotate(new Vector3(wheelRotateR, 0, 0) * Time.deltaTime);
     }
 
+    // 미사일 발사 버튼
     public void OnClickFireButton()
     {
         if (!_isMine)
@@ -218,6 +221,22 @@ public class PlayerController : MonoBehaviour
 
         // 직접 만들지 말고 서버에 메시지 전송하면 서버에서 모두에게 만듦
         // 발사한 플레이어의 총구 위치, 바라보는 방향(회전값) 정보 전달
-        Instantiate(Missile, Muzzle.position, this.transform.rotation);
+        //Instantiate(Missile, Muzzle.position, this.transform.rotation);
+        ClientProgram.Instance.SendMissile();
+
     }
+
+
+    // 미사일 생성 트리거
+
+
+    // 미사일 생성
+
+
+    // 미사일 업데이트 트리거
+
+
+    // 미사일 업데이트
+
+
 }

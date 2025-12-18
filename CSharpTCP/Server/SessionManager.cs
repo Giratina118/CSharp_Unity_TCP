@@ -36,22 +36,23 @@ namespace Server
                     if (item.Info.id == session.Info.id)
                         continue;
 
-                    ObjectInfo infoTemp = new ObjectInfo() { id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
+                    ObjectInfo infoTemp = new ObjectInfo() { objType = (ushort)ObjType.Player, id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
                     playerInfoList.Add(infoTemp);
                 }
-                CreateAll crAllPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllPlayer, playerInfos = playerInfoList };
+                CreateAll crAllPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllPlayer, Infos = playerInfoList };
                 ArraySegment<byte> crSegment = crAllPacket.Write();
                 session.Send(crSegment);
 
 
                 // 먼저 생성되어 있던 모든 몬스터 생성하라고 전송
                 List<ObjectInfo> monsterInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
-                foreach (Monster item in MonsterManager.Instance.Monsters.Values)
+                foreach (int item in MonsterManager.Instance.Monsters.Keys)
                 {
-                    ObjectInfo infoTemp = new ObjectInfo() { id = item._id, position = item._pos, rotation = item._rot };
+                    Monster sendMonster = MonsterManager.Instance.Monsters[item];
+                    ObjectInfo infoTemp = new ObjectInfo() { objType = sendMonster._id, id = item, position = sendMonster._pos, rotation = sendMonster._rot };
                     monsterInfoList.Add(infoTemp);
                 }
-                CreateAll createAllMonsterPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllMonster, playerInfos = monsterInfoList };
+                CreateAll createAllMonsterPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllMonster, Infos = monsterInfoList };
                 ArraySegment<byte> crMonsterSegment = createAllMonsterPacket.Write();
                 session.Send(crMonsterSegment);
 

@@ -31,23 +31,37 @@ namespace Server
     // 메세지 유형
     enum MsgType
     {
-        Create = 1,  // 플레이어 오브젝트 생성
-        Remove,      // 플레이어 오브젝트 삭제
+        CreatePlayer = 1, // 플레이어 오브젝트 생성
+        RemovePlayer,     // 플레이어 오브젝트 삭제
+        CreateMonster,    // 몬스터 오브젝트 생성
+        RemoveMonster,    // 몬스터 오브젝트 삭제
+        CreateMissile,    // 미사일 오브젝트 생성
+        RemoveMissile,    // 미사일 오브젝트 삭제
 
-        CreateAllPlayer,
-        CreateAllMonster,
+        CreateAllPlayer,  // 모든 플레이어 생성(최초 초기화)
+        CreateAllMonster, // 모든 몬스터 생성(최초 초기화)
 
-        MovePlayer,  // 플레이어 이동
-        MoveMonster, // 몬스터 이동
-        MoveMissile, // 미사일 이동
+        MovePlayer,     // 플레이어 이동
+        MoveMonster,    // 몬스터 이동
+        MoveMissile,    // 미사일 이동
         RollbackPlayer, // 플레이어 롤백
 
         Max,
     };
 
+    enum ObjType
+    {
+        Player = 1,
+        Missile,
+        Monster,
+
+        Max,
+    }
+
     // 플레이어 정보(id, 위치)
     public struct ObjectInfo
     {
+        public ushort objType;
         public long id; // id
         public Vector3 position; // 위치 정보
         public Vector3 rotation; // 회전 정보
@@ -56,8 +70,10 @@ namespace Server
         {
             bool success = true;
 
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.objType);
+            count += sizeof(ushort); // 오브젝트 유형
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id);
-            count += sizeof(long);  // id
+            count += sizeof(long); // id
             success &= Utils.WriteVector3(position, ref span, ref count); // 이동
             success &= Utils.WriteVector3(rotation, ref span, ref count); // 회전
 
@@ -66,8 +82,10 @@ namespace Server
 
         public void Read(ReadOnlySpan<byte> span, ref ushort count)
         {
+            objType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 오브젝트 유형
             id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
-            count += sizeof(long);  // id
+            count += sizeof(long); // id
             Utils.ReadVector3(ref position, span, ref count); // 이동
             Utils.ReadVector3(ref rotation, span, ref count); // 회전
         }
@@ -186,12 +204,12 @@ namespace Server
     }
 
     // 유저 오브젝트 생성/삭제 관리
-    class PlayerCreateRemovePacket : Packet
+    class CreateRemovePacket : Packet
     {
         public long playerId;      // 어떤 유저를
         public ushort messageType; // 생성 혹은 삭제할지
 
-        public PlayerCreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
+        public CreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
 
         public override ArraySegment<byte> Write()
         {
@@ -238,8 +256,8 @@ namespace Server
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
     class CreateAll : Packet
     {
-        public ushort messageType; // aptlwl dbgud
-        public List<ObjectInfo> playerInfos = new List<ObjectInfo>();
+        public ushort messageType; // 메시지 유형
+        public List<ObjectInfo> Infos = new List<ObjectInfo>();
 
         public CreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
 
@@ -259,9 +277,9 @@ namespace Server
             count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 쓰기
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)playerInfos.Count);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)Infos.Count);
             count += sizeof(ushort);
-            foreach (ObjectInfo infos in playerInfos)
+            foreach (ObjectInfo infos in Infos)
                 success &= infos.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
@@ -283,14 +301,14 @@ namespace Server
             count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 읽기
-            playerInfos.Clear();
+            Infos.Clear();
             ushort infoLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort);
             for (int i = 0; i < infoLen; i++)
             {
                 ObjectInfo info = new ObjectInfo();
                 info.Read(span, ref count);
-                playerInfos.Add(info);
+                Infos.Add(info);
             }
         }
     }
