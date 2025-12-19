@@ -448,6 +448,7 @@ MonoBehaviour:
   Missile: {fileID: -6273711187140567975, guid: 3b6f9ec82bd4ffd4aab710fe350e5f32, type: 3}
   Muzzle: {fileID: 4026801364645477770}
   _isMine: 0
+  _playerId: 0
   _updateInterval: 0.25
   _moveSpeed: 3
   _camera: {fileID: 0}

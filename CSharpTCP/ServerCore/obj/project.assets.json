@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj",
+      "projectUniqueName": "C:\\Microsoft\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj",
       "projectName": "ServerCore",
-      "projectPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj",
+      "projectPath": "C:\\Microsoft\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\ServerCore.csproj",
       "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-      "outputPath": "C:\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\obj\\",
+      "outputPath": "C:\\Microsoft\\MinHyeok\\Network\\CSharp_TCP\\CSharpTCP\\ServerCore\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

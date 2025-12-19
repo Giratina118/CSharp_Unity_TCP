@@ -39,11 +39,12 @@ namespace Server
         static async Task GameLoop()
         {
             const int TickMs = 100; // 10 TPS
-            float deltaTime = TickMs / 1000f;
+            float deltaTime = TickMs / 1000.0f;
 
             while (true)
             {
                 MonsterManager.Instance.Update(deltaTime);
+                MissileManager.Instance.Update(deltaTime);
 
                 await Task.Delay(TickMs);
             }
@@ -57,6 +58,7 @@ namespace Server
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777); // ip 특정 포트 번호 접근
 
             MonsterManager.Instance.InitData(); // 몬스터 데이터 받기
+
 
             // 클라이언트 받기
             _listener.Init(endPoint, () => { return new ClientSession(); });

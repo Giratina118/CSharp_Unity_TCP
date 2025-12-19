@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static Server.CSVReader;
 
@@ -18,6 +19,7 @@ namespace Server
         private ushort _point; // 처치 시 획득 점수
         public Vector3 _pos;   // 위치
         public Vector3 _rot;   // 회전
+        public float Radius = 1.5f;
 
         public Monster()
         {
@@ -80,10 +82,10 @@ namespace Server
         
         public void Update()
         {
-
+            
         }
 
-        public void Move()
+        public void Move(float deltaTime)
         {
 
         }
@@ -106,7 +108,7 @@ namespace Server
 
         private void Die()
         {
-
+            SpatialGrid.Instance.RemoveMonster(this);
         }
     }
 
@@ -170,6 +172,7 @@ namespace Server
         {
             _monsterId++;
             Monsters.Add(_monsterId, monster);
+            SpatialGrid.Instance.AddMonster(monster);
         }
 
         public void Update(float deltaTime)
@@ -177,6 +180,14 @@ namespace Server
             if (SessionManager.Instance.Sessions.Count == 0)
                 return;
 
+            foreach (Monster monster in Monsters.Values)
+            {
+                Vector3 prev = monster._pos;
+
+                monster.Move(deltaTime);
+
+                SpatialGrid.Instance.UpdateMonster(monster, prev); // ⭐
+            }
             /*
             _remainTime -= deltaTime;
 

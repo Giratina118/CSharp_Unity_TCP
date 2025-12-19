@@ -20,6 +20,7 @@ namespace Server
         private float _updateInterval = 0.25f; // 갱신 간격
         private DateTime _beforeRequestTime;
         private int missileNum = 0;
+        public float CollisionRadius = 1.2f;
 
         // 연결되면 실행
         public override void OnConnected(EndPoint endPoint)
@@ -45,6 +46,7 @@ namespace Server
             SessionManager.Instance.BroadcastExcept(segment, Info.id);
 
             SessionManager.Instance.Remove(this); // 딕셔너리에서 삭제
+            SpatialGrid.Instance.RemovePlayer(this);
         }
 
         // 패킷 보내면 실행
@@ -104,12 +106,13 @@ namespace Server
             CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
 
-            Console.WriteLine($"CreateRemove | ID: {crPacket.playerId}, messageType: {crPacket.messageType}\n");
+            Console.WriteLine($"CreateRemove | ID: {crPacket.playerId}, messageType: {(MsgType)crPacket.messageType}\n");
 
-            /*
+            
             switch ((int)crPacket.messageType)
             {
                 case (int)MsgType.CreatePlayer:
+                case (int)MsgType.RemovePlayer:
                     ArraySegment<byte> playerSegment = crPacket.Write();
                     if (crPacket != null)
                         SessionManager.Instance.BroadcastAll(playerSegment); // 생성/삭제 모든 클라이언트에 전송
@@ -119,11 +122,14 @@ namespace Server
                     // 미사일 생성 요청 받으면 각 클라에 미사일 띄우기
                     ArraySegment<byte> missileSegment = crPacket.Write();
                     if (crPacket != null)
+                    {
+                        MissileManager.Instance.Add(Info);
                         SessionManager.Instance.BroadcastAll(missileSegment); // 생성/삭제 모든 클라이언트에 전송
+                    }
                     break;
             }
-            */
-
+            
+            /*
             // 생성/삭제하라고 클라에 전송
             ArraySegment<byte> missileSegment = crPacket.Write();
             if (crPacket != null)
@@ -131,6 +137,7 @@ namespace Server
                 //MissileManager.Instance.Missiles.Add(missileNum++, new Missile() { _pos =  })
                 SessionManager.Instance.BroadcastAll(missileSegment); // 생성/삭제 모든 클라이언트에 전송
             }
+            */
         }
 
         // Move 패킷 받음
@@ -148,7 +155,12 @@ namespace Server
             Vector3 newRot = movePacket.playerInfo.rotation;
 
 
-            Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}");
+            Vector3 prev = Info.position;
+            Info.position = newPos;
+            SpatialGrid.Instance.UpdatePlayer(this, prev);
+
+
+            //Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}");
 
             // 이동, 회전값에 이상이 없는지 검사 후 처리, 문제가 있다면 해당 클라 위치를 롤백처리, 문제가 없다면 다른 클라에게 전송
             //Console.WriteLine($"위치 변화량: {Vector3.Distance(Info.position, newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
@@ -158,11 +170,11 @@ namespace Server
             // 요청 주기가 지나치게 짧은 경우 롤백
             
             TimeSpan interval = DateTime.Now - _beforeRequestTime;
-            Console.WriteLine($"호출 간격: {interval.TotalSeconds} {_updateInterval}");
             if (interval.TotalSeconds < _updateInterval * 0.9f)
             {
                 // 로그 출력
                 Console.WriteLine("Frequent Request");
+                Console.WriteLine($"호출 간격: {interval.TotalSeconds} {_updateInterval}");
                 _isrollback = true;
             }
             _beforeRequestTime = DateTime.Now;
@@ -170,11 +182,11 @@ namespace Server
 
             // 속도가 기준치보다 높은 경우 롤백
             float limitSpeed = _moveSpeed * _updateInterval * 1.1f;
-            Console.WriteLine($"이전 위치: {Info.position}, 새 위치: {newPos}, 이동 거리: {Vector3.Distance(Info.position, newPos)}, 한계 거리: {limitSpeed}");
             if (Vector3.Distance(Info.position, newPos) > limitSpeed)
             {
                 // 로그 출력
                 Console.WriteLine("Abnormal Movement");
+                Console.WriteLine($"이전 위치: {Info.position}, 새 위치: {newPos}, 이동 거리: {Vector3.Distance(Info.position, newPos)}, 한계 거리: {limitSpeed}");
                 _isrollback = true;
             }
             
@@ -191,8 +203,8 @@ namespace Server
 
             Info.position = newPos;
             Info.rotation = newRot;
-            Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, " +
-                $"pos: {{{Info.position.X}, {Info.position.Y}, {Info.position.Z}}}, rot: {{{Info.rotation.X}, {Info.rotation.Y}, {Info.rotation.Z}}}\n");
+            //Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, " +
+            //    $"pos: {{{Info.position.X}, {Info.position.Y}, {Info.position.Z}}}, rot: {{{Info.rotation.X}, {Info.rotation.Y}, {Info.rotation.Z}}}\n");
 
             ArraySegment<byte> segment = movePacket.Write();
             if (movePacket != null)

@@ -226,17 +226,4 @@ public class PlayerController : MonoBehaviour
 
     }
 
-
-    // 미사일 생성 트리거
-
-
-    // 미사일 생성
-
-
-    // 미사일 업데이트 트리거
-
-
-    // 미사일 업데이트
-
-
 }

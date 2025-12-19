@@ -61,6 +61,8 @@ namespace Server
                 ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 입장하셨습니다." };
                 ArraySegment<byte> chatSegment = chatPacket.Write();
                 BroadcastAll(chatSegment);
+
+                SpatialGrid.Instance.AddPlayer(session); // 충돌 처리를 위함
             }
         }
 
