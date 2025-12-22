@@ -1,0 +1,7 @@
+번호,국가 코드,키값,내용,번역 현황
+No.,National_Code,String_Key,Content,Translation_Status
+int,int,string,string,int
+1,1,Monster_Ray,가오리 몬스터,1
+2,1,Monster_Bee,벌 몬스터,1
+3,1,Notice_Create_Monster,가 생성되었습니다.,1
+4,1,Notice_Remove_Monster,가 쓰러졌습니다.,1

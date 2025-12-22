@@ -45,7 +45,7 @@ namespace Server
                 {
                     float radius = player.CollisionRadius + missile.Radius;
                     float distance = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
-                    if (distance > 0.0f && distance < minDistance)
+                    if (distance > 0.0f && distance < minDistance && missile.ShooterId != player.Info.id)
                     {
                         targetPlayer = player;
                         minDistance = distance;
@@ -100,6 +100,7 @@ namespace Server
         // 몬스터 미사일 충돌 후 처리
         private void OnHit(Missile missile, Monster monster)
         {
+            missile.IsRemoved = true;
             monster.Hit(missile.Damage);
             Console.WriteLine($"몬스터 맞춤 {monster._id}, {monster._pos}");
 
@@ -111,6 +112,7 @@ namespace Server
         // 플레이어 미사일 충돌 후 처리
         private void OnHit(Missile missile, ClientSession player)
         {
+            missile.IsRemoved = true;
             Console.WriteLine("플레이어 맞춤");
             // 플레이어 데미지 처리
             // 미사일 제거

@@ -1,13 +1,14 @@
-﻿using System;
+﻿using ServerCore;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ServerCore;
-using System.Numerics;
-using System.Runtime.InteropServices;
 
 // 패킷 전송 현재 과정
 // 클라(개인) -> 서버 | 연결 시도
@@ -38,15 +39,37 @@ namespace Server
 
         static async Task GameLoop()
         {
-            const int TickMs = 100; // 10 TPS
-            float deltaTime = TickMs / 1000.0f;
+            bool serverRunning = true;
 
-            while (true)
+            const float TickDelta = 0.1f; // 10 TPS
+            const int SleepMs = 1;
+
+            float accumulator = 0f;
+            float frameTime = 0f;
+
+            var stopwatch = Stopwatch.StartNew();
+            long lastTimeMs = stopwatch.ElapsedMilliseconds;
+
+            while (serverRunning)
             {
-                MonsterManager.Instance.Update(deltaTime);
-                MissileManager.Instance.Update(deltaTime);
+                long now = stopwatch.ElapsedMilliseconds;
+                frameTime = (now - lastTimeMs) / 1000f;
+                lastTimeMs = now;
 
-                await Task.Delay(TickMs);
+                // GC / 스파이크 방어
+                frameTime = Math.Min(frameTime, 0.25f);
+
+                accumulator += frameTime;
+
+                while (accumulator >= TickDelta)
+                {
+                    MonsterManager.Instance.Update(TickDelta);
+                    MissileManager.Instance.Update(TickDelta);
+
+                    accumulator -= TickDelta;
+                }
+
+                await Task.Delay(SleepMs);
             }
         }
 

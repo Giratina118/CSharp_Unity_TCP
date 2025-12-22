@@ -82,7 +82,7 @@ public class PlayerController : MonoBehaviour
         if (info.id != _playerId || _isMine)
             return;
 
-        Debug.Log($"Update Other Pos | my id: {ClientProgram.Instance.ClientId}, recv id: {info.id}");
+        //Debug.Log($"Update Other Pos | my id: {ClientProgram.Instance.ClientId}, recv id: {info.id}");
 
         _playerInfo.position = info.position;
         _playerInfo.rotation = info.rotation;

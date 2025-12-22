@@ -153,12 +153,12 @@ namespace Client
             MovePacket movePacket = new MovePacket();
             movePacket.Read(buffer);
 
-            Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.objInfo.id}, pos: {movePacket.objInfo.position}, rot: {movePacket.objInfo.rotation}\n");
+            //Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.objInfo.id}, pos: {movePacket.objInfo.position}, rot: {movePacket.objInfo.rotation}\n");
             long playerId = movePacket.objInfo.id;
             switch (movePacket.messageType)
             {
                 case (ushort)MsgType.MovePlayer:
-                    Debug.Log($"내 id: {ClientProgram.Instance.ClientId},  보낸 사람 id: {playerId}");
+                    //Debug.Log($"내 id: {ClientProgram.Instance.ClientId},  보낸 사람 id: {playerId}");
 
                     // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
                     if (ClientProgram.Instance.playerObjDic[playerId] != null)
