@@ -11,7 +11,8 @@ namespace Server
     public class Missile
     {
         public long ShooterId;        // 발사한 플레이어 id
-        public Vector3 Pos;           // 생성 위치
+        public Vector3 CreatedPos;    // 생성 위치
+        public Vector3 Pos;           // 현재 위치
         public Vector3 Dir;           // 날아가는 방향
         public ushort Damage = 10;    // 데미지
         public float Radius = 0.05f;  // 충돌 반지름
@@ -37,28 +38,23 @@ namespace Server
         public static MissileManager Instance { get; } = new MissileManager();
         public List<Missile> Missiles = new List<Missile>();
         private int _missilesId = 0;
-        private Vector3 _muzzle = new Vector3(0.0f, 1.0f, 1.75f);
+        private Vector3 _muzzle = new Vector3(0.0f, 0.5f, 0.0f);
 
         public void Update(float deltaTime)
         {
-            foreach (Missile missile in Missiles)
+            for (int i = Missiles.Count - 1; i >= 0; i--)
             {
-                if (missile.IsRemoved)
-                    continue;
+                Missile missile = Missiles[i];
 
-                if (missile.IsLifeTimeOver)
+                if (missile.IsLifeTimeOver || missile.IsRemoved)
                 {
-                    Remove(missile);
+                    Missiles.RemoveAt(i);
                     continue;
                 }
 
                 Vector3 prevPos = missile.Pos;
+                missile.Update(deltaTime);
 
-                missile.Update(deltaTime); // 위치 갱신
-
-                //Console.WriteLine($"미사일 업데이트 {prevPos},  {missile._pos},  {missile}");
-
-                // 충돌 체크
                 CollisionSystem.Instance.MissileCollisionCheck(prevPos, missile.Pos, missile);
             }
         }
@@ -70,7 +66,7 @@ namespace Server
         {
             Console.WriteLine($"위치: {Info.position + _muzzle},  방향: {Info.rotation}, {{{MathF.Sin(Info.rotation.Y / 180.0f * PI)}, {0}, {MathF.Cos(Info.rotation.Y / 180.0f * PI)}}}");
             Vector3 dir = new Vector3(MathF.Sin(Info.rotation.Y / 180.0f * PI), 0.0f, MathF.Cos(Info.rotation.Y / 180.0f * PI));
-            Missile newMissile = new Missile() { ShooterId = Info.id, Pos = Info.position + _muzzle, Dir = dir };
+            Missile newMissile = new Missile() { ShooterId = Info.id, CreatedPos = Info.position + _muzzle, Pos = Info.position + _muzzle, Dir = dir, SpawnTime = DateTime.UtcNow };
             Missiles.Add(newMissile);
         }
 

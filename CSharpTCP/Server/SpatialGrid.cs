@@ -19,7 +19,7 @@ namespace Server
     // 셀로 나눠진 월드 전체 공간
     public class SpatialGrid
     {
-        public static SpatialGrid Instance { get; } = new SpatialGrid(10.0f); // 셀 크기
+        public static SpatialGrid Instance { get; } = new SpatialGrid(25.0f); // 셀 크기
 
         private float _cellSize; // 한 셀의 실제 월드 크기
         private Dictionary<Vector2Int, GridCell> _cells = new Dictionary<Vector2Int, GridCell>(); // 셀 좌표, 셀 데이터

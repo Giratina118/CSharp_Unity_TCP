@@ -23,19 +23,20 @@ namespace Server
             Monster? targetMonster = null;
             ClientSession? targetPlayer = null;
 
+            float minDistance = 100000.0f;
+
             // 셀 안 오브젝트 충돌 검사
             foreach (GridCell cell in cells)
             {
-                float minDistance = 100000.0f;
-
                 foreach (Monster monster in cell.Monsters) // 몬스터 충돌
                 {
                     float radius = monster.Radius + missile.Radius;
-                    float distance = CollisionLineSphere(prevPos, currPos, monster._pos, radius);
-                    if (distance > 0.0f && distance < minDistance)
+                    float collisionDistance = CollisionLineSphere(prevPos, currPos, monster._pos, radius);
+                    float fromFireDistance = Vector3.Distance(missile.CreatedPos, monster._pos);
+                    if (collisionDistance > 0.0f && fromFireDistance < minDistance)
                     {
                         targetMonster = monster;
-                        minDistance = distance;
+                        minDistance = fromFireDistance;
                         //OnHit(missile, monster);
                         //return;
                     }
@@ -44,11 +45,12 @@ namespace Server
                 foreach (ClientSession player in cell.Players) // 플레이어 충돌
                 {
                     float radius = player.CollisionRadius + missile.Radius;
-                    float distance = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
-                    if (distance > 0.0f && distance < minDistance && missile.ShooterId != player.Info.id)
+                    float collisionDistance = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
+                    float fromFireDistance = Vector3.Distance(missile.CreatedPos, player.Info.position);
+                    if (collisionDistance > 0.0f && fromFireDistance < minDistance && missile.ShooterId != player.Info.id)
                     {
                         targetPlayer = player;
-                        minDistance = distance;
+                        minDistance = fromFireDistance;
                         //OnHit(missile, player);
                         //return;
                     }
@@ -100,22 +102,31 @@ namespace Server
         // 몬스터 미사일 충돌 후 처리
         private void OnHit(Missile missile, Monster monster)
         {
-            missile.IsRemoved = true;
-            monster.Hit(missile.Damage);
-            Console.WriteLine($"몬스터 맞춤 {monster._id}, {monster._pos}");
+            long shooter = missile.ShooterId;
 
-            // 몬스터 데미지 처리
-            // 미사일 제거
-            //missile.IsAlive = false;
+            missile.IsRemoved = true;
+            monster.Hit(missile.Damage); // 몬스터 데미지 처리
+            Console.WriteLine($"몬스터 맞춤 {monster._id}, {monster._curHP}/{monster._maxHP}");
+
+            MissileManager.Instance.Remove(missile); // 미사일 제거
+            // TODO: 몬스터 공격 성공한 플레이어(shooter)에게 공격 성공 전달(전달 요소: 데미지, 피격 대상 위치)
+
         }
 
         // 플레이어 미사일 충돌 후 처리
         private void OnHit(Missile missile, ClientSession player)
         {
             missile.IsRemoved = true;
-            Console.WriteLine("플레이어 맞춤");
-            // 플레이어 데미지 처리
-            // 미사일 제거
+            Console.WriteLine($"플레이어 맞춤 {player.Name}");
+
+            MissileManager.Instance.Remove(missile); // 미사일 제거
+
+            // TODO: 플레이어 피격 처리(서버 내부), 클라이언트 세션에서 체력 관리 및 피격 함수 생성, 거기서 피격당한 플레이어에게 전달
+            // TODO: 플레이어 체력에 따라 소멸 처리, 다른 클라들에게 누가 쓰러뜨렸는지 전달, 쓰러뜨린 플레이어는 쓰러진 플레이어가 가지고 있던 점수의 절반 획득
+            // TODO: 쓰러진 플레이어는 서버 연결 해제, 최종 점수 표시
+
+            // TODO: 공격 성공한 플레이어(shooter)에게 공격 성공 전달(전달 요소: 데미지, 피격 대상 위치)
+
             //missile.IsAlive = false;
         }
     }

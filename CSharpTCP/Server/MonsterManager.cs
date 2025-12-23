@@ -12,8 +12,8 @@ namespace Server
     public class Monster
     {
         public ushort _id;     // 몬스터 고유 번호
-        private ushort _maxHP; // 최대 체력
-        private ushort _curHP; // 현재 체력
+        public ushort _maxHP; // 최대 체력
+        public ushort _curHP; // 현재 체력
         private float _speed;  // 이동 속도
         private ushort _damage;// 공격력
         private ushort _point; // 처치 시 획득 점수
@@ -90,14 +90,17 @@ namespace Server
 
         }
 
-        public void Attack()
-        {
-
-        }
-
+        // 피격
         public void Hit(ushort dmg)
         {
-            if (_curHP <= dmg)
+            // TODO: 매개변수로 발사한 사람이 누군지도 같이 받아오기(shooter)
+            // TODO: 몬스터 소멸 시 모든 클라에게 누가 쓰러뜨렸는지 전달, 클라에서는 받아서 알림창에 띄움
+            // TODO: 몬스터 소멸 시 쓰러뜨린 클라에게 점수 추가(서버 내부에서), 점수는 1초에 1번씩 각 클라에게 전송
+            // TODO: 몬스터 소멸 시 해당 위치에 새로운 회복 아이템 생성
+
+
+
+            if (_curHP <= dmg) // 체력 0 시 소멸
             {
                 _curHP = 0;
                 Die();
@@ -106,6 +109,7 @@ namespace Server
                 _curHP -= dmg;
         }
 
+        // 소멸
         private void Die()
         {
             SpatialGrid.Instance.RemoveMonster(this);

@@ -21,6 +21,7 @@ namespace Server
         private DateTime _beforeRequestTime;
         private int missileNum = 0;
         public float CollisionRadius = 1.2f;
+        // TODO: 클라들 점수 추가, 점수 관리 및 업데이트(1초 마다 클라들에게 전송)
 
         // 연결되면 실행
         public override void OnConnected(EndPoint endPoint)
