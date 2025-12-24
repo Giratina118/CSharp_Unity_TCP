@@ -32,7 +32,7 @@ namespace Server
         public Monster(MonsterSpawnData spawnData)
         {
             _id = (ushort)spawnData.Type;
-            MonsterData monsterData = MonsterManager.Instance.monsterData[spawnData.Type];
+            MonsterData monsterData = MonsterManager.Instance.MonsterDataDic[spawnData.Type];
             _maxHP = _curHP = (ushort)monsterData.Hp;
             _speed = monsterData.Speed;
             _damage = (ushort)monsterData.Damage;
@@ -121,8 +121,8 @@ namespace Server
         public static MonsterManager Instance { get; } = new MonsterManager();
 
         public Dictionary<int, Monster> Monsters = new Dictionary<int, Monster>();
-        public Dictionary<int, MonsterData> monsterData = new Dictionary<int, MonsterData> ();
-        List<MonsterSpawnData> monsterSpawnDate = new List<MonsterSpawnData> ();
+        public Dictionary<int, MonsterData> MonsterDataDic = new Dictionary<int, MonsterData> ();
+        List<MonsterSpawnData> MonsterSpawnDateList = new List<MonsterSpawnData> ();
 
         private ushort _monsterId = 0;
 
@@ -149,10 +149,10 @@ namespace Server
         // 몬스터 정보 초기화
         public void InitData()
         {
-            monsterData = LoadMonsterData(MonsterDataPath);
-            monsterSpawnDate = LoadMonsterSpawnData(MonsterSpawnDataPath);
+            MonsterDataDic = LoadMonsterData(MonsterDataPath);
+            MonsterSpawnDateList = LoadMonsterSpawnData(MonsterSpawnDataPath);
 
-            foreach (MonsterSpawnData spawnData in monsterSpawnDate)
+            foreach (MonsterSpawnData spawnData in MonsterSpawnDateList)
             {
                 Spawn(spawnData);
             }
@@ -209,7 +209,7 @@ namespace Server
 
             Add(monster);
 
-            Console.WriteLine($"Monster Spawned: {_monsterId}  {monsterData[monster._id].Name}");
+            Console.WriteLine($"Monster Spawned: {_monsterId}  {MonsterDataDic[monster._id].Name}");
         }
     }
 }

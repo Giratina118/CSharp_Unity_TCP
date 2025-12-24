@@ -8,6 +8,7 @@ using System.Net;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Server
 {
@@ -151,7 +152,6 @@ namespace Server
             if (movePacket.messageType != (ushort)MsgType.MovePlayer)
                 return;
 
-            
             Vector3 newPos = movePacket.playerInfo.position;
             Vector3 newRot = movePacket.playerInfo.rotation;
 
@@ -159,7 +159,6 @@ namespace Server
             Vector3 prev = Info.position;
             Info.position = newPos;
             SpatialGrid.Instance.UpdatePlayer(this, prev);
-
 
             //Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}");
 
@@ -200,7 +199,6 @@ namespace Server
                 Send(rollbackSegment);
                 return;
             }
-            
 
             Info.position = newPos;
             Info.rotation = newRot;

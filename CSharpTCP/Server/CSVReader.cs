@@ -27,7 +27,7 @@ namespace Server
             public int Type;    // 어떤 종류의 몬스터인지
             public string Name; // 이름
             public int Hp;      // 체력
-            public float Speed;   // 속도
+            public float Speed; // 속도
             public int Damage;  // 데미지
             public int Point;   // 적 처치 시 점수
         }
@@ -42,6 +42,23 @@ namespace Server
             public float yRot;
             public float zRot;
         }
+
+        public struct StructureData
+        {
+            public int Type;
+            public float XSize; // 크기
+            public float YSize;
+            public float ZSize;
+        }
+
+        public struct StructureSpawnData
+        {
+            public int Type;
+            public float XPos; // 위치
+            public float YPos;
+            public float ZPos;
+        }
+
 
         public static List<T> Load<T>(string path, int skipLineCount, Func<string[], T> parser)
         {
@@ -67,6 +84,7 @@ namespace Server
             return result;
         }
 
+        // 몬스터 데이터
         public static Dictionary<int, MonsterData> LoadMonsterData(string path)
         {
             Dictionary<int, MonsterData> result = new Dictionary<int, MonsterData>();
@@ -84,9 +102,7 @@ namespace Server
             foreach (var data in list)
             {
                 if (result.ContainsKey(data.Type))
-                {
                     throw new Exception($"중복 Monster_Number: {data.Type}");
-                }
 
                 result.Add(data.Type, data); // Type == Monster_Number
             }
@@ -94,6 +110,7 @@ namespace Server
             return result;
         }
 
+        // 몬스터 스폰 데이터
         public static List<MonsterSpawnData> LoadMonsterSpawnData(string path)
         {
             return Load(path, 3, row => new MonsterSpawnData
@@ -105,6 +122,42 @@ namespace Server
                 xRot = float.Parse(row[6]),
                 yRot = float.Parse(row[7]),
                 zRot = float.Parse(row[8])
+            });
+        }
+
+        // 건물 데이터
+        public static Dictionary<int, StructureData> LoadStructureData(string path)
+        {
+            Dictionary<int, StructureData> result = new Dictionary<int, StructureData>();
+
+            var list = Load(path, 3, row => new StructureData
+            {
+                Type = int.Parse(row[1]),
+                XSize = float.Parse(row[3]),
+                YSize = float.Parse(row[4]),
+                ZSize = float.Parse(row[5]),
+            });
+
+            foreach (var data in list)
+            {
+                if (result.ContainsKey(data.Type))
+                    throw new Exception($"중복 Structure_Number: {data.Type}");
+
+                result.Add(data.Type, data); // Type == Structure_Number
+            }
+
+            return result;
+        }
+
+        // 건물 스폰 데이터
+        public static List<StructureSpawnData> LoadStructureSpawnData(string path)
+        {
+            return Load(path, 3, row => new StructureSpawnData
+            {
+                Type = int.Parse(row[1]),
+                XPos = float.Parse(row[3]),
+                YPos = float.Parse(row[4]),
+                ZPos = float.Parse(row[5])
             });
         }
     }

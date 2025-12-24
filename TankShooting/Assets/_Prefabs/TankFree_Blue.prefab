@@ -94,7 +94,6 @@ GameObject:
   - component: {fileID: 2701500081385018735}
   - component: {fileID: 4291595922770809868}
   - component: {fileID: 9179670844170639629}
-  - component: {fileID: 5963046991518795285}
   m_Layer: 0
   m_Name: TankFree_Canon
   m_TagString: Untagged
@@ -168,27 +167,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &5963046991518795285
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1454081132944276307}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 0.1614112, y: 0.16141151, z: 1.1}
-  m_Center: {x: -0.0000009797513, y: -0.000000059604645, z: 0.4}
 --- !u!1 &4154916100751553878
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,9 +330,7 @@ GameObject:
   - component: {fileID: 2787491499893808441}
   - component: {fileID: 6637605472618984200}
   - component: {fileID: 8225628643893198772}
-  - component: {fileID: 1679832308301511577}
-  - component: {fileID: 7436565163141845062}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: TankFree_Blue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -465,14 +441,14 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.9, y: 0.822533, z: 2.5}
-  m_Center: {x: 0, y: 0.088733494, z: -0.100000024}
+  m_Size: {x: 1.9, y: 1.83, z: 2.93}
+  m_Center: {x: 0, y: 0.16, z: 0.115}
 --- !u!54 &8225628643893198772
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -496,56 +472,10 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!136 &1679832308301511577
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7096042255962015865}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.45
-  m_Height: 2
-  m_Direction: 0
-  m_Center: {x: 0.00000023841858, y: -0.35, z: -0.57}
---- !u!136 &7436565163141845062
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7096042255962015865}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.45
-  m_Height: 2
-  m_Direction: 0
-  m_Center: {x: 0.00000023841858, y: -0.35, z: 0.57}
 --- !u!1 &7402549809397368732
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,7 +570,6 @@ GameObject:
   - component: {fileID: 2299498465632284141}
   - component: {fileID: 108900328252231585}
   - component: {fileID: 7782048019274729563}
-  - component: {fileID: 9118862051221255687}
   m_Layer: 0
   m_Name: TankFree_Tower
   m_TagString: Untagged
@@ -714,27 +643,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &9118862051221255687
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8751019346161060123}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 1, y: 0.6, z: 1.2}
-  m_Center: {x: 0, y: 0.3, z: 0}
 --- !u!1 &8992756927165177909
 GameObject:
   m_ObjectHideFlags: 0
