@@ -59,10 +59,10 @@ namespace Client
     // 플레이어 정보(id, 위치)
     public struct ObjectInfo
     {
-        public ushort objType;
-        public long id; // id
-        public Vector3 position; // 위치 정보
-        public Vector3 rotation; // 회전 정보
+        public ushort ObjType;
+        public long Id; // id
+        public Vector3 Position; // 위치 정보
+        public Vector3 Rotation; // 회전 정보
 
         public static bool WriteVector3(Vector3 vec, ref Span<byte> span, ref ushort count)
         {
@@ -91,32 +91,32 @@ namespace Client
         {
             bool success = true;
 
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.objType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.ObjType);
             count += sizeof(ushort);  // 오브젝트 유형
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.Id);
             count += sizeof(long); // id
-            success &= WriteVector3(position, ref span, ref count); // 이동
-            success &= WriteVector3(rotation, ref span, ref count); // 회전
+            success &= WriteVector3(Position, ref span, ref count); // 이동
+            success &= WriteVector3(Rotation, ref span, ref count); // 회전
 
             return success;
         }
 
         public void Read(ReadOnlySpan<byte> span, ref ushort count)
         {
-            objType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            ObjType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 오브젝트 유형
-            id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
+            Id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
             count += sizeof(long); // id
-            ReadVector3(ref position, span, ref count); // 이동
-            ReadVector3(ref rotation, span, ref count); // 회전
+            ReadVector3(ref Position, span, ref count); // 이동
+            ReadVector3(ref Rotation, span, ref count); // 회전
         }
     }
 
     // 패킷 기본 부모 클래스
     public abstract class Packet
     {
-        public ushort size;       // 패킷 크기
-        public ushort packetType; // 패킷 유형
+        public ushort Size;       // 패킷 크기
+        public ushort PacketType; // 패킷 유형
 
         // 최상위 Class인 Packet에 인터페이스 생성
         public abstract ArraySegment<byte> Write();
@@ -126,10 +126,10 @@ namespace Client
     // 유저 확인용 정보를 전송
     class PlayerInfoReq : Packet
     {
-        public long playerId; // 플레이어 아이디
-        public string name;   // 이름(닉네임)
+        public long PlayerId; // 플레이어 아이디
+        public string Name;   // 이름(닉네임)
 
-        public PlayerInfoReq() { this.packetType = (ushort)PacketType.PlayerInfoReq; }
+        public PlayerInfoReq() { this.PacketType = (ushort)Client.PacketType.PlayerInfoReq; }
 
         public override ArraySegment<byte> Write()
         {
@@ -141,13 +141,13 @@ namespace Client
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType);
             count += sizeof(ushort); // 패킷 아이디
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerId);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PlayerId);
             count += sizeof(long);   // 플레이어 아이디
 
             // Buffer에 string data를 삽입함과 동시에 string len을 반환
-            ushort nameLen = (ushort)Encoding.Unicode.GetBytes(this.name, 0, name.Length, segment.Array, segment.Offset + count + sizeof(ushort));
+            ushort nameLen = (ushort)Encoding.Unicode.GetBytes(this.Name, 0, Name.Length, segment.Array, segment.Offset + count + sizeof(ushort));
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), nameLen); // 길이
             count += sizeof(ushort); // 플레이어 네임
             count += nameLen;
@@ -167,13 +167,13 @@ namespace Client
 
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
-            this.playerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            this.PlayerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(long);   // 플레이어 아이디
 
             // string 처리
             ushort nameLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 플레이어 네임
-            this.name = Encoding.Unicode.GetString(span.Slice(count, nameLen)); // GetString()는 Byte 배열을 받아 string으로 변환
+            this.Name = Encoding.Unicode.GetString(span.Slice(count, nameLen)); // GetString()는 Byte 배열을 받아 string으로 변환
             count += nameLen;
         }
     }
@@ -181,9 +181,9 @@ namespace Client
     // 유저 정보 확인 완료 전송 (서버 -> 클라)
     class PlayerInfoOk : Packet
     {
-        public long playerId; // 플레이어 아이디
+        public long PlayerId; // 플레이어 아이디
 
-        public PlayerInfoOk() { this.packetType = (ushort)PacketType.PlayerInfoOk; }
+        public PlayerInfoOk() { this.PacketType = (ushort)Client.PacketType.PlayerInfoOk; }
 
         public override ArraySegment<byte> Write()
         {
@@ -195,9 +195,9 @@ namespace Client
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType);
             count += sizeof(ushort); // 패킷 아이디
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerId);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PlayerId);
             count += sizeof(long);   // 플레이어 아이디
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
@@ -215,20 +215,20 @@ namespace Client
 
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
-            this.playerId = BitConverter.ToInt64(span.Slice(count, span.Length - count));
+            this.PlayerId = BitConverter.ToInt64(span.Slice(count, span.Length - count));
             count += sizeof(long);   // 플레이어 아이디
 
-            ClientProgram.Instance.ClientId = playerId;
+            ClientProgram.Instance.ClientId = PlayerId;
         }
     }
 
     // 유저 오브젝트 생성/삭제 관리
     class CreateRemovePacket : Packet
     {
-        public long playerId;      // 어떤 유저를
-        public ushort messageType; // 생성 혹은 삭제할지
+        public long PlayerId;      // 어떤 유저를
+        public ushort MessageType; // 생성 혹은 삭제할지
 
-        public CreateRemovePacket() { this.packetType = (ushort)PacketType.CreateRemove; }
+        public CreateRemovePacket() { this.PacketType = (ushort)Client.PacketType.CreateRemove; }
 
         public override ArraySegment<byte> Write()
         {
@@ -240,12 +240,12 @@ namespace Client
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType); // 패킷 종류
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType); // 패킷 종류
             count += sizeof(ushort); // 패킷 아이디
 
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerId); // 플레이어 id
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PlayerId); // 플레이어 id
             count += sizeof(long);   // 플레이어 아이디
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType); // 메시지 타입
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.MessageType); // 메시지 타입
             count += sizeof(ushort); // 메시지 타입(생성/삭제 여부)
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
@@ -264,9 +264,9 @@ namespace Client
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
 
-            this.playerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            this.PlayerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(long);   // 플레이어 아이디
-            this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            this.MessageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 메시지 타입(생성/삭제 여부)
         }
     }
@@ -274,10 +274,10 @@ namespace Client
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
     class CreateAll : Packet
     {
-        public ushort messageType; // 메시지 유형
-        public List<ObjectInfo> objInfos = new List<ObjectInfo>();
+        public ushort MessageType; // 메시지 유형
+        public List<ObjectInfo> ObjInfos = new List<ObjectInfo>();
 
-        public CreateAll() { this.packetType = (ushort)PacketType.CreateAll; }
+        public CreateAll() { this.PacketType = (ushort)Client.PacketType.CreateAll; }
 
         public override ArraySegment<byte> Write()
         {
@@ -289,15 +289,15 @@ namespace Client
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType); // 패킷 종류
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType); // 패킷 종류
             count += sizeof(ushort); // 패킷 아이디
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.MessageType);
             count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 쓰기
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)objInfos.Count);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)ObjInfos.Count);
             count += sizeof(ushort);
-            foreach (ObjectInfo infos in objInfos)
+            foreach (ObjectInfo infos in ObjInfos)
                 infos.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
@@ -315,18 +315,18 @@ namespace Client
 
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
-            messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            MessageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 메시지 유형
 
             // 구조체 리스트 id, 좌표 읽기
-            objInfos.Clear();
+            ObjInfos.Clear();
             ushort infoLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort);
             for (int i = 0; i < infoLen; i++)
             {
                 ObjectInfo info = new ObjectInfo();
                 info.Read(span, ref count);
-                objInfos.Add(info);
+                ObjInfos.Add(info);
             }
         }
     }
@@ -334,10 +334,10 @@ namespace Client
     // 플레이어 이동(위치 정보) 관리
     class MovePacket : Packet
     {
-        public ushort messageType;
-        public ObjectInfo objInfo; // 플레이어 아이디, 위치, 회전 정보
+        public ushort MessageType;
+        public ObjectInfo ObjInfo; // 플레이어 아이디, 위치, 회전 정보
 
-        public MovePacket() { this.packetType = (ushort)PacketType.Move; }
+        public MovePacket() { this.PacketType = (ushort)Client.PacketType.Move; }
 
         public override ArraySegment<byte> Write()
         {
@@ -349,12 +349,12 @@ namespace Client
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType);
             count += sizeof(ushort); // 패킷 유형
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.MessageType);
             count += sizeof(ushort); // 메시지 타입(어느 오브젝트가 이동하는지)
 
-            objInfo.Write(span, ref count);
+            ObjInfo.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
 
@@ -373,20 +373,20 @@ namespace Client
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
 
-            this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            this.MessageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(ushort); // 메시지 타입
 
-            objInfo.Read(span, ref count);
+            ObjInfo.Read(span, ref count);
         }
     }
 
     // 채팅 관리
     class ChatPacket : Packet
     {
-        public long playerId; // 플레이어 아이디
-        public string chat;   // 채팅 내용
+        public long PlayerId; // 플레이어 아이디
+        public string Chat;   // 채팅 내용
 
-        public ChatPacket() { this.packetType = (ushort)PacketType.Chat; }
+        public ChatPacket() { this.PacketType = (ushort)Client.PacketType.Chat; }
 
         public override ArraySegment<byte> Write()
         {
@@ -398,13 +398,13 @@ namespace Client
             Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort); // 패킷 사이즈
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.packetType);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType);
             count += sizeof(ushort); // 패킷 아이디
 
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerId);
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PlayerId);
             count += sizeof(long);   // 플레이어 아이디
 
-            ushort chatLen = (ushort)Encoding.Unicode.GetBytes(this.chat, 0, chat.Length, segment.Array, segment.Offset + count + sizeof(ushort));
+            ushort chatLen = (ushort)Encoding.Unicode.GetBytes(this.Chat, 0, Chat.Length, segment.Array, segment.Offset + count + sizeof(ushort));
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), chatLen); // 길이
             count += sizeof(ushort); // 채팅
             count += chatLen;
@@ -426,12 +426,12 @@ namespace Client
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
 
-            this.playerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            this.PlayerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(long);   // 플레이어 아이디
 
             ushort chatLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 플레이어 네임
-            this.chat = Encoding.Unicode.GetString(span.Slice(count, chatLen));
+            this.Chat = Encoding.Unicode.GetString(span.Slice(count, chatLen));
             count += chatLen;
         }
     }

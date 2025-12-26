@@ -125,6 +125,7 @@ namespace Server
             });
         }
 
+
         // 건물 데이터
         public static Dictionary<int, StructureData> LoadStructureData(string path)
         {

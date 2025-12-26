@@ -31,14 +31,12 @@ namespace Server
                 foreach (Monster monster in cell.Monsters) // 몬스터 충돌
                 {
                     float radius = monster.Radius + missile.Radius;
-                    float collisionDistance = CollisionLineSphere(prevPos, currPos, monster._pos, radius);
-                    float fromFireDistance = Vector3.Distance(missile.CreatedPos, monster._pos);
+                    float collisionDistance = CollisionLineSphere(prevPos, currPos, monster.Pos, radius);
+                    float fromFireDistance = Vector3.Distance(missile.CreatedPos, monster.Pos);
                     if (collisionDistance > 0.0f && fromFireDistance < minDistance)
                     {
                         targetMonster = monster;
                         minDistance = fromFireDistance;
-                        //OnHit(missile, monster);
-                        //return;
                     }
                 }
 
@@ -51,8 +49,6 @@ namespace Server
                     {
                         targetPlayer = player;
                         minDistance = fromFireDistance;
-                        //OnHit(missile, player);
-                        //return;
                     }
                 }
             }
@@ -106,7 +102,7 @@ namespace Server
 
             missile.IsRemoved = true;
             monster.Hit(missile.Damage); // 몬스터 데미지 처리
-            Console.WriteLine($"몬스터 맞춤 {monster._id}, {monster._curHP}/{monster._maxHP}");
+            Console.WriteLine($"몬스터 맞춤 {monster.Type}, {monster.CurHP}/{monster.MaxHP}");
 
             MissileManager.Instance.Remove(missile); // 미사일 제거
             // TODO: 몬스터 공격 성공한 플레이어(shooter)에게 공격 성공 전달(전달 요소: 데미지, 피격 대상 위치)

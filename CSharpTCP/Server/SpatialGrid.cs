@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Vector2Int = System.ValueTuple<int, int>;
 
@@ -14,6 +15,7 @@ namespace Server
         // 해당 칸에 들어있는 몬스터, 플레이어 집합
         public HashSet<Monster> Monsters = new HashSet<Monster>();
         public HashSet<ClientSession> Players = new HashSet<ClientSession>();
+        public HashSet<Structure> Structures = new HashSet<Structure>();
     }
 
     // 셀로 나눠진 월드 전체 공간
@@ -41,8 +43,8 @@ namespace Server
         public void AddMonster(Monster monster)
         {
             // 셀 찾기, 없으면 추가 후 몬스터 등록
-            Console.WriteLine($"위치: {monster._pos},  셀: {ToCell(monster._pos)}");
-            GetOrCreateCell(ToCell(monster._pos)).Monsters.Add(monster);
+            Console.WriteLine($"위치: {monster.Pos},  셀: {ToCell(monster.Pos)}");
+            GetOrCreateCell(ToCell(monster.Pos)).Monsters.Add(monster);
         }
 
         // 플레이어 셀에 등록
@@ -52,10 +54,18 @@ namespace Server
             GetOrCreateCell(ToCell(player.Info.position)).Players.Add(player);
         }
 
+        // 건물 셀에 등록
+        public void AddStructure(Structure structure)
+        {
+            // 셀 찾기, 없으면 추가 후 건물 등록
+            Console.WriteLine($"위치: {structure._pos},  셀: {ToCell(structure._pos)}");
+            GetOrCreateCell(ToCell(structure._pos)).Structures.Add(structure);
+        }
+
         // 몬스터 제거
         public void RemoveMonster(Monster monster)
         {
-            Vector2Int cell = ToCell(monster._pos); // 현재 위치 기준 셀
+            Vector2Int cell = ToCell(monster.Pos); // 현재 위치 기준 셀
 
             if (_cells.TryGetValue(cell, out GridCell gridCell))
             {
@@ -116,7 +126,7 @@ namespace Server
         public void UpdateMonster(Monster monster, Vector3 prevPos)
         {
             Vector2Int prev = ToCell(prevPos);
-            Vector2Int curr = ToCell(monster._pos);
+            Vector2Int curr = ToCell(monster.Pos);
 
             if (prev == curr)
                 return;

@@ -26,7 +26,7 @@ namespace Client
             Debug.Log($"OnDisconnected : {endPoint}");
 
             // 연결 해제 시 모든 오브젝트 제거
-            ClientProgram.Instance.RemovePlayerAll();
+            PlayerManager.Instance.RemovePlayerAll();
         }
 
         // 패킷 보내면 실행
@@ -56,16 +56,17 @@ namespace Client
             }
         }
 
+
         // PlayerInfoReq 패킷 받음
         public void OnRecvPlayerInfoReq(ArraySegment<byte> buffer)
         {
             PlayerInfoReq playerInfo = new PlayerInfoReq();
             playerInfo.Read(buffer);
 
-            Debug.Log($"InfoReq | ID : {playerInfo.playerId}, name : {playerInfo.name}\n");
+            Debug.Log($"InfoReq | ID : {playerInfo.PlayerId}, name : {playerInfo.Name}\n");
 
             // 서버에 이름(닉네임) 전송
-            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 0, name = ClientProgram.Instance.NickName };
+            PlayerInfoReq packet = new PlayerInfoReq() { PlayerId = 0, Name = ClientProgram.Instance.NickName };
             ArraySegment<byte> segment = packet.Write(); // 직렬화
 
             if (segment != null)
@@ -78,8 +79,8 @@ namespace Client
             PlayerInfoOk playerInfo = new PlayerInfoOk();
             playerInfo.Read(buffer);
 
-            Debug.Log($"InfoOk : {playerInfo.playerId}\n");
-            ClientProgram.Instance.ClientId = playerInfo.playerId;
+            Debug.Log($"InfoOk : {playerInfo.PlayerId}\n");
+            ClientProgram.Instance.ClientId = playerInfo.PlayerId;
         }
 
         // CreateRemove 패킷 받음
@@ -88,42 +89,27 @@ namespace Client
             CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
 
-            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.playerId}, messageType : {crPacket.messageType}\n");
+            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.PlayerId}, messageType : {crPacket.MessageType}\n");
 
-            switch ((ushort)crPacket.messageType)
+            switch ((ushort)crPacket.MessageType)
             {
                 case (ushort)MsgType.CreatePlayer:
                     // 플레이어 아이디로 특정 플레이어 생성
                     ObjectInfo playerInfo = new ObjectInfo();
-                    playerInfo.id = crPacket.playerId;
-                    ClientProgram.Instance.OnTriggerCreateCharacter(playerInfo);
+                    playerInfo.Id = crPacket.PlayerId;
+                    PlayerManager.Instance.OnTriggerCreateCharacter(playerInfo);
                     break;
 
                 case (ushort)MsgType.RemovePlayer:
                     // 플레이어 아이디로 특정 플레이어의 오브젝트 삭제
-                    ClientProgram.Instance.OnTriggerRemoveExitCharacter(crPacket.playerId);
+                    PlayerManager.Instance.OnTriggerRemoveExitCharacter(crPacket.PlayerId);
                     break;
 
                 case (ushort)MsgType.CreateMissile:
                     // 플레이어 아이지로 생성할 미사일 위치, 방향 결정
-                    ClientProgram.Instance.OnTriggerCreateMissile(crPacket.playerId);
+                    MissileManager.Instance.OnTriggerCreateMissile(crPacket.PlayerId);
                     break;
             }
-
-            /*
-            if (crPacket.messageType == (ushort)MsgType.CreatePlayer)
-            {
-                // 플레이어 아이디로 특정 플레이어 생성
-                ObjectInfo playerInfo = new ObjectInfo();
-                playerInfo.id = crPacket.playerId;
-                ClientProgram.Instance.OnTriggerCreateCharacter(playerInfo);
-            }
-            else if (crPacket.messageType == (ushort)MsgType.RemovePlayer)
-            {
-                // 플레이어 아이디로 특정 플레이어의 오브젝트 삭제
-                ClientProgram.Instance.OnTriggerRemoveExitCharacter(crPacket.playerId);
-            }
-            */
         }
 
         // CreateAll 패킷 받음
@@ -131,18 +117,18 @@ namespace Client
         {
             CreateAll crPacket = new CreateAll();
             crPacket.Read(buffer);
-            Debug.Log($"create all {(MsgType)crPacket.messageType}");
+            Debug.Log($"create all {(MsgType)crPacket.MessageType}");
 
-            switch (crPacket.messageType)
+            switch (crPacket.MessageType)
             {
                 case (ushort)MsgType.CreateAllPlayer:
                     // 자신이 들어오기 전 먼저 들어와 있던 플레이어들의 오브젝트 생성
-                    ClientProgram.Instance.OnTriggerCreateCharacterAll(crPacket.objInfos);
+                    PlayerManager.Instance.OnTriggerCreateCharacterAll(crPacket.ObjInfos);
                     break;
 
                 case (ushort)MsgType.CreateAllMonster:
                     // 자신이 들어오기 전 먼저 생성되어 있는 모든 몬스터 생성
-                    ClientProgram.Instance.OnTriggerCreateMonsterAll(crPacket.objInfos);
+                    MonsterManager.Instance.OnTriggerCreateMonsterAll(crPacket.ObjInfos);
                     break;
             }
         }
@@ -154,19 +140,19 @@ namespace Client
             movePacket.Read(buffer);
 
             //Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.objInfo.id}, pos: {movePacket.objInfo.position}, rot: {movePacket.objInfo.rotation}\n");
-            long playerId = movePacket.objInfo.id;
-            switch (movePacket.messageType)
+            long playerId = movePacket.ObjInfo.Id;
+            switch (movePacket.MessageType)
             {
                 case (ushort)MsgType.MovePlayer:
                     //Debug.Log($"내 id: {ClientProgram.Instance.ClientId},  보낸 사람 id: {playerId}");
 
                     // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
-                    if (ClientProgram.Instance.playerObjDic[playerId] != null)
-                        ClientProgram.Instance.playerObjDic[playerId].OnTriggerUpdateOtherPos(movePacket.objInfo);
+                    if (PlayerManager.Instance.PlayerObjDic[playerId] != null)
+                        PlayerManager.Instance.PlayerObjDic[playerId].OnTriggerUpdateOtherPos(movePacket.ObjInfo);
                     break;
 
                 case (ushort)MsgType.RollbackPlayer:
-                    ClientProgram.Instance.playerObjDic[playerId].OnTriggerPlayerRollback(movePacket.objInfo);
+                    PlayerManager.Instance.PlayerObjDic[playerId].OnTriggerPlayerRollback(movePacket.ObjInfo);
                     break;
 
                 case (ushort)MsgType.MoveMonster:
@@ -185,10 +171,10 @@ namespace Client
             ChatPacket chatPacket = new ChatPacket();
             chatPacket.Read(buffer);
 
-            Debug.Log($"Chat | ID : {chatPacket.playerId}, chat: {chatPacket.chat}\n");
+            Debug.Log($"Chat | ID : {chatPacket.PlayerId}, chat: {chatPacket.Chat}\n");
 
             // 채팅창에 업데이트
-            ClientProgram.Instance.RecvChatting(chatPacket.chat);
+            ChatManager.Instance.RecvChatting(chatPacket.Chat);
         }
     }
 }

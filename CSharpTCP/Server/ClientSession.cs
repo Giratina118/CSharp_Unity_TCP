@@ -130,16 +130,6 @@ namespace Server
                     }
                     break;
             }
-            
-            /*
-            // 생성/삭제하라고 클라에 전송
-            ArraySegment<byte> missileSegment = crPacket.Write();
-            if (crPacket != null)
-            {
-                //MissileManager.Instance.Missiles.Add(missileNum++, new Missile() { _pos =  })
-                SessionManager.Instance.BroadcastAll(missileSegment); // 생성/삭제 모든 클라이언트에 전송
-            }
-            */
         }
 
         // Move 패킷 받음
