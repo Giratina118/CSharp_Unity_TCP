@@ -19,18 +19,24 @@ public class MissileManager : MonoBehaviour
 
     void Awake()
     {
+        /*
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
+        */
         Instance = this;
     }
 
     private void Start()
     {
         _missilerParent = new GameObject("Missiles");
+    }
+
+    private void Update()
+    {
+        CreateMissile();
     }
 
     // 미사일 발사 버튼
@@ -55,15 +61,15 @@ public class MissileManager : MonoBehaviour
     }
 
     // 미사일 생성
-    public void CreateMissile(Dictionary<long, PlayerController> playerObjDic)
+    public void CreateMissile()
     {
         if (!_onCreateMissile)
             return;
         _onCreateMissile = false;
 
-        Debug.Log($"shooter: {_shooterId}, pos: {playerObjDic[_shooterId].transform.position}, rot: {playerObjDic[_shooterId].transform.rotation}");
+        Debug.Log($"shooter: {_shooterId}, pos: {PlayerManager.Instance.PlayerObjDic[_shooterId].transform.position}, rot: {PlayerManager.Instance.PlayerObjDic[_shooterId].transform.rotation}");
 
-        GameObject newMissile = Instantiate(MissilePrefab, playerObjDic[_shooterId].Muzzle.position, playerObjDic[_shooterId].transform.rotation);
+        GameObject newMissile = Instantiate(MissilePrefab, PlayerManager.Instance.PlayerObjDic[_shooterId].Muzzle.position, PlayerManager.Instance.PlayerObjDic[_shooterId].transform.rotation);
         newMissile.transform.parent = _missilerParent.transform;
     }
 }

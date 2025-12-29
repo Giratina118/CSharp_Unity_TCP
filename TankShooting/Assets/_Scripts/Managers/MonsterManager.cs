@@ -24,12 +24,13 @@ public class MonsterManager : MonoBehaviour
 
     void Awake()
     {
+        /*
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
+        */
         Instance = this;
     }
 
@@ -54,14 +55,14 @@ public class MonsterManager : MonoBehaviour
 
         Debug.Log($"CreateMonsterAll, count: {_monsterInfosTemp.Count}");
         _onCreateAllMonster = false;
+        int idCount = _monsterInfosTemp.Count;
 
-        for (int i = 0; i < _monsterInfosTemp.Count; i++)
+        for (int i = 0; i < idCount; i++)
         {
             ObjectInfo test = _monsterInfosTemp[i];
             Debug.Log($"objType: {test.ObjType}, id: {test.Id}, pos: {test.Position}, rot: {test.Rotation}");
         }
 
-        int idCount = _monsterInfosTemp.Count;
         for (int i = 0; i < idCount; i++)
         {
             OnTriggerCreateMonster(_monsterInfosTemp[i]);

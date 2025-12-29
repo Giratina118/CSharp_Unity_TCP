@@ -45,7 +45,6 @@ namespace Client
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
 
         void Start()
@@ -60,10 +59,11 @@ namespace Client
         {
             try
             {
+                StructureManager.Instance.CreateStructureAll(); // 건물 생성
                 MonsterManager.Instance.CreateMonsterAll();  // 모든 몬스터 생성
                 PlayerManager.Instance.CreateCharacterAll(); // 다른 플레이어 캐릭터 생성
                 PlayerManager.Instance.CreateCharacter();    // 본인 캐릭터 생성
-                MissileManager.Instance.CreateMissile(PlayerManager.Instance.PlayerObjDic); // 미사일 생성
+                MissileManager.Instance.CreateMissile();     // 미사일 생성
                 ChatManager.Instance.UpdateChatting();       // 채팅 업데이트
 
                 if (Input.GetKeyDown(KeyCode.Return))

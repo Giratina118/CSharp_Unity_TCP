@@ -130,6 +130,11 @@ namespace Client
                     // 자신이 들어오기 전 먼저 생성되어 있는 모든 몬스터 생성
                     MonsterManager.Instance.OnTriggerCreateMonsterAll(crPacket.ObjInfos);
                     break;
+
+                case (ushort)MsgType.CreateAllStructure:
+                    // 모든 건물 생성
+                    StructureManager.Instance.OnTriggerCreateStructureAll(crPacket.ObjInfos);
+                    break;
             }
         }
 

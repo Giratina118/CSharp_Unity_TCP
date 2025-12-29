@@ -50,7 +50,7 @@ namespace ServerCore
         Socket _socket;
         int _disconnected = 0;
 
-        RecvBuffer _recvBuffer = new RecvBuffer(1024);
+        RecvBuffer _recvBuffer = new RecvBuffer(2048);
 
         object _lock = new object();
         //Queue<byte[]> _sendQueue = new Queue<byte[]>(); // send 모아 처리하기

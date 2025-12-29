@@ -44,8 +44,8 @@ int,int,string,float,float,float
 41,1001,Building_01,-22.5,0,-25.2
 42,1001,Building_01,-35,0,-2
 43,1001,Building_01,-35,0,6.5
-44,1001,Building_01,26,0,0
-45,1001,Building_01,26,0,8.5
+44,1001,Building_01,-26,0,0
+45,1001,Building_01,-26,0,8.5
 46,1002,Building_02,0.8,0,10
 47,1002,Building_02,-11.3,0,13.9
 48,1002,Building_02,8.5,0,36.3

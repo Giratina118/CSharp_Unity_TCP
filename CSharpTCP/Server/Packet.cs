@@ -38,8 +38,9 @@ namespace Server
         CreateMissile,    // 미사일 오브젝트 생성
         RemoveMissile,    // 미사일 오브젝트 삭제
 
-        CreateAllPlayer,  // 모든 플레이어 생성(최초 초기화)
-        CreateAllMonster, // 모든 몬스터 생성(최초 초기화)
+        CreateAllPlayer,    // 모든 플레이어 생성(최초 초기화)
+        CreateAllMonster,   // 모든 몬스터 생성(최초 초기화)
+        CreateAllStructure, // 모든 건물 생성(최초 초기화)
 
         MovePlayer,     // 플레이어 이동
         MoveMonster,    // 몬스터 이동
@@ -54,6 +55,7 @@ namespace Server
         Player = 1,
         Missile,
         Monster,
+        Structure,
 
         Max,
     }

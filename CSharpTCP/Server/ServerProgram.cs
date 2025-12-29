@@ -24,8 +24,8 @@ namespace Server
             const float TickDelta = 0.1f; // 10 TPS
             const int SleepMs = 1;
 
-            float accumulator = 0f;
-            float frameTime = 0f;
+            float accumulator = 0.0f;
+            float frameTime = 0.0f;
 
             var stopwatch = Stopwatch.StartNew();
             long lastTimeMs = stopwatch.ElapsedMilliseconds;
@@ -33,7 +33,7 @@ namespace Server
             while (serverRunning)
             {
                 long now = stopwatch.ElapsedMilliseconds;
-                frameTime = (now - lastTimeMs) / 1000f;
+                frameTime = (now - lastTimeMs) / 1000.0f;
                 lastTimeMs = now;
 
                 // GC 스파이크(어플리케이션 성능이 순간적으로 급격히 저하하는 것, 가비지컬렉션, 박싱<->언박싱 등 원인) 방어

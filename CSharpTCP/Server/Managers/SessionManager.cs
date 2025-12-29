@@ -29,6 +29,7 @@ namespace Server
                 if (segment != null)
                     session.Send(segment);
 
+                
                 // 먼저 접속해 있던 플레이어의 오브젝트들 생성하라고 전송
                 List<ObjectInfo> playerInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
                 foreach (ClientSession item in Sessions.Values)
@@ -43,7 +44,6 @@ namespace Server
                 ArraySegment<byte> crSegment = crAllPacket.Write();
                 session.Send(crSegment);
 
-
                 // 먼저 생성되어 있던 모든 몬스터 생성하라고 전송
                 List<ObjectInfo> monsterInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
                 foreach (int item in MonsterManager.Instance.Monsters.Keys)
@@ -56,6 +56,20 @@ namespace Server
                 ArraySegment<byte> crMonsterSegment = createAllMonsterPacket.Write();
                 session.Send(crMonsterSegment);
 
+                
+                // 건물들 생성하라고 전송
+                List<ObjectInfo> structureInfoList = new List<ObjectInfo>(); // 건물들 정보
+                foreach (Structure item in StructureManager.Instance.Structures)
+                {
+                    ObjectInfo infoTemp = new ObjectInfo() { objType = (ushort)ObjType.Structure, id = item.Type, position = item.Pos, rotation = Vector3.Zero };
+                    structureInfoList.Add(infoTemp);
+                    Console.WriteLine($"{(ushort)ObjType.Structure},  {item.Type},  {item.Pos}");
+                }
+                CreateAll createAllStructurePacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllStructure, Infos = structureInfoList };
+                ArraySegment<byte> crStructureSegment = createAllStructurePacket.Write();
+                Console.WriteLine($"{crStructureSegment.Count}");
+                session.Send(crStructureSegment);
+                
 
                 // 입장 알림 보내기
                 ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 입장하셨습니다." };

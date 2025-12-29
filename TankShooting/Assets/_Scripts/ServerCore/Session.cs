@@ -54,7 +54,7 @@ namespace ServerCore
         Socket _socket;
         int _disconnected = 0;
 
-        RecvBuffer _recvBuffer = new RecvBuffer(1024);
+        RecvBuffer _recvBuffer = new RecvBuffer(2048);
 
         object _lock = new object();
         //Queue<byte[]> _sendQueue = new Queue<byte[]>(); // send 모아 처리하기
@@ -134,6 +134,7 @@ namespace ServerCore
         // 수신 이후
         void OnRecvCompleted(object sender, SocketAsyncEventArgs args)
         {
+            UnityEngine.Debug.Log(args.BytesTransferred);
             // 내가 몇 byte를 받았는지 체크
             if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {

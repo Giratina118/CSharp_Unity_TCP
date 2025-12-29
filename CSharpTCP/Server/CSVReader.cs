@@ -22,6 +22,7 @@ namespace Server
             Bee = 2001,
         }
 
+        // 몬스터 기본 정보
         public struct MonsterData
         {
             public int Type;    // 어떤 종류의 몬스터인지
@@ -32,6 +33,7 @@ namespace Server
             public int Point;   // 적 처치 시 점수
         }
 
+        // 몬스터 스폰 정보
         public struct MonsterSpawnData
         {
             public int Type;
@@ -43,6 +45,7 @@ namespace Server
             public float zRot;
         }
 
+        // 건물 기본 정보
         public struct StructureData
         {
             public int Type;
@@ -51,6 +54,7 @@ namespace Server
             public float ZSize;
         }
 
+        // 건물 스폰 정보
         public struct StructureSpawnData
         {
             public int Type;

@@ -10,13 +10,13 @@ namespace Server
 {
     public class Structure
     {
-        public int Type;     // 종류
+        public ushort Type;  // 종류
         public Vector3 Size; // 크기
         public Vector3 Pos;  // 위치
 
         public Structure(StructureData structureData, StructureSpawnData structureSpawnData)
         {
-            Type = structureData.Type;
+            Type = (ushort)structureData.Type;
             Size = new Vector3(structureData.XSize, structureData.YSize, structureData.ZSize);
             Pos = new Vector3(structureSpawnData.XPos, structureSpawnData.YPos, structureSpawnData.ZPos);
         }
@@ -26,7 +26,8 @@ namespace Server
     {
         public static StructureManager Instance { get; } = new StructureManager();
 
-        public Dictionary<int, Structure> Structures = new Dictionary<int, Structure>();
+        //public Dictionary<int, Structure> Structures = new Dictionary<int, Structure>();
+        public List<Structure> Structures = new List<Structure>();
         public Dictionary<int, StructureData> StructureDataDic = new Dictionary<int, StructureData>();
         List<StructureSpawnData> StructureSpawnDateList = new List<StructureSpawnData>();
         private ushort _structurerId = 0;
@@ -48,7 +49,7 @@ namespace Server
         public void Add(Structure structure)
         {
             _structurerId++;
-            Structures.Add(_structurerId, structure);
+            Structures.Add(structure);
             SpatialGrid.Instance.AddStructure(structure);
         }
 
@@ -58,7 +59,7 @@ namespace Server
 
             Add(structure);
 
-            Console.WriteLine($"Structure Spawned: {_structurerId}  {StructureDataDic[_structurerId].Type}");
+            Console.WriteLine($"Structure Spawned: {_structurerId}  {StructureDataDic[spawnData.Type].Type}");
         }
     }
 }
