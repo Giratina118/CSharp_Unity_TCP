@@ -17,7 +17,7 @@ namespace Server
         public string Name = ""; // 이름
         public ObjectInfo Info = new ObjectInfo();
 
-        private float _moveSpeed = 3.0f;       // 이동 속도
+        private float _moveSpeed = 4.0f;       // 이동 속도
         private float _updateInterval = 0.25f; // 갱신 간격
         private DateTime _beforeRequestTime;
         private int missileNum = 0;

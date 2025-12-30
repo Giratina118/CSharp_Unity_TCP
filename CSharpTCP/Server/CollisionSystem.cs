@@ -20,6 +20,7 @@ namespace Server
             // 겹치는 셀 목록
             List<GridCell> cells = _grid.QueryBySegment(prevPos, currPos);
 
+            Structure? targetStructure = null;
             Monster? targetMonster = null;
             ClientSession? targetPlayer = null;
 
@@ -28,6 +29,17 @@ namespace Server
             // 셀 안 오브젝트 충돌 검사
             foreach (GridCell cell in cells)
             {
+                foreach (Structure structure in cell.Structures)
+                {
+                    float collisionDistance = CollisionLineRect(prevPos, currPos, structure.Pos, structure.Size);
+
+                    if (collisionDistance > 0.0f && collisionDistance < minDistance)
+                    {
+                        targetStructure = structure;
+                        minDistance = collisionDistance;
+                    }
+                }
+
                 foreach (Monster monster in cell.Monsters) // 몬스터 충돌
                 {
                     float radius = monster.Radius + missile.Radius;
@@ -93,6 +105,59 @@ namespace Server
                 return distance;  // 충돌 O
             else
                 return -1; // 충돌 X
+        }
+
+        // 선분, 사각형 충돌
+        private float CollisionLineRect(Vector3 missilePrevPos, Vector3 missileCurrPos, Vector3 center, Vector3 size)
+        {
+            // 직선이 사각형과 접하면 충돌, 4개 선 중 하나와는 겹쳐야 한다.
+            // 즉 4개의 선(x, y값)을 대입했을때 범위에 들어오면 접함.
+
+            Vector3 dir = missileCurrPos - missilePrevPos;
+            float length = dir.Length();
+
+            if (length < 0.0001f)
+                return -1.0f;
+
+            Vector3 boxMin = center - size;
+            Vector3 boxMax = center + size;
+
+            float tMin = 0.0f;
+            float tMax = 1.0f;
+
+            if (!LineCollisionCheck(dir.X, missilePrevPos.X, boxMin.X, boxMax.X, ref tMin, ref tMax)) return -1.0f;
+            if (!LineCollisionCheck(dir.Y, missilePrevPos.Y, boxMin.Y, boxMax.Y, ref tMin, ref tMax)) return -1.0f;
+            if (!LineCollisionCheck(dir.Z, missilePrevPos.Z, boxMin.Z, boxMax.Z, ref tMin, ref tMax)) return -1.0f;
+
+            if (tMin < 0.0f)
+                tMin = 0.0f;
+
+            return length * tMin;
+        }
+
+        // 충돌 여부 체크
+        private bool LineCollisionCheck(float dir, float start, float min, float max, ref float tMin, ref float tMax)
+        {
+            if (MathF.Abs(dir) < 0.0001f)
+            {
+                // 이 축으로 이동이 없으면 범위 안에 있어야 함
+                return start >= min && start <= max;
+            }
+
+            float t1 = (min - start) / dir;
+            float t2 = (max - start) / dir;
+
+            if (t1 > t2)
+            {
+                float temp = t1;
+                t1 = t2;
+                t2 = temp;
+            }
+
+            tMin = MathF.Max(tMin, t1);
+            tMax = MathF.Min(tMax, t2);
+
+            return tMin <= tMax;
         }
 
         // 몬스터 미사일 충돌 후 처리

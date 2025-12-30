@@ -21,7 +21,7 @@ namespace Server
         public DateTime SpawnTime;    // 생성 시각
         public float LifeTime = 10.0f;// 생명 시간
 
-        private float _speed = 10.0f; // 미사일 속도
+        private float _speed = 15.0f; // 미사일 속도
 
         public bool IsLifeTimeOver => (DateTime.UtcNow - SpawnTime).TotalSeconds >= LifeTime;
 

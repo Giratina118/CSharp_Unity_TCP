@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
     private ObjectInfo _beforeInfo;  // 해당 플레이어 오브젝트의 이전 위치, 회전 정보
     private Vector3 _translate;      // 이동값(보간)
     private Vector3 _rotate;         // 회전값(보간)
-    private float _moveSpeed = 3.0f; // 이동 속도
+    private float _moveSpeed = 4.0f; // 이동 속도
     private float _rotSpeed = 90.0f; // 회전 속도
     private float _wheelSpeed = 150; // 바퀴 회전 속도
 
