@@ -6,3 +6,6 @@ https://assetstore.unity.com/packages/essentials/tutorial-projects/tanks-complet
 
 몬스터
 https://assetstore.unity.com/packages/3d/characters/creatures/monster-minion-survivor-pbr-polyart-269515
+
+체력 게이지
+https://assetstore.unity.com/packages/tools/game-toolkits/health-system-lite-health-bar-hitbox-248090

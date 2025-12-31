@@ -54,7 +54,7 @@ namespace Server
         // 패킷 보내면 실행
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine($"OnSend");
+            //Console.WriteLine($"OnSend");
         }
 
         // 패킷 받으면 실행

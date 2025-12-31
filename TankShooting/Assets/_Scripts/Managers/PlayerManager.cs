@@ -87,6 +87,7 @@ public class PlayerManager : MonoBehaviour
             if (!_onCreatePlayer)
                 return;
             _onCreatePlayer = false;
+            _newPlayerInfo.Position.y = 1.0f;
 
             // 새 캐릭터 생성
             GameObject newObj = Instantiate(PlayerPrefabs, _newPlayerInfo.Position, Quaternion.identity);

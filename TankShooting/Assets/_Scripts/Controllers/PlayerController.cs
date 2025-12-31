@@ -44,11 +44,12 @@ public class PlayerController : MonoBehaviour
     {
         _isMine = isMine;
         _clientId = playerId;
+        GetComponent<Collider>().enabled = true;
 
         if (isMine)
         {
             _camera = Camera.main; // Ä«¸Þ¶ó
-            _camera.transform.position = new Vector3(0, 2, -2);
+            _camera.transform.position = new Vector3(0, 3, -2);
             _camera.transform.rotation = Quaternion.Euler(20f, 0f, 0f);
             _camera.transform.SetParent(this.transform);
 

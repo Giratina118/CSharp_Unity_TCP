@@ -15,7 +15,7 @@ namespace Server
         public Vector3 Pos;           // 현재 위치
         public Vector3 Dir;           // 날아가는 방향
         public ushort Damage = 10;    // 데미지
-        public float Radius = 0.05f;  // 충돌 반지름
+        public float Radius = 0.1f;  // 충돌 반지름
         public bool IsRemoved = false;// 충돌되어 제거된 상태인지
 
         public DateTime SpawnTime;    // 생성 시각
@@ -29,7 +29,7 @@ namespace Server
         {
             Vector3 prev = Pos;
             Pos += Dir * _speed * deltaTime;
-            Console.WriteLine($"위치: {Pos}");
+            //Console.WriteLine($"위치: {Pos}");
         }
     }
 

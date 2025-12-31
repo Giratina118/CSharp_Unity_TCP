@@ -29,135 +29,160 @@ namespace Server
             // 셀 안 오브젝트 충돌 검사
             foreach (GridCell cell in cells)
             {
-                foreach (Structure structure in cell.Structures)
+                foreach (Structure structure in cell.Structures) // 건물 충돌
                 {
-                    float collisionDistance = CollisionLineRect(prevPos, currPos, structure.Pos, structure.Size);
+                    Vector3? collisionPos = CollisionLineRect(prevPos, currPos, structure.Pos, structure.Size);
 
-                    if (collisionDistance > 0.0f && collisionDistance < minDistance)
+                    if (collisionPos == null)
+                        continue;
+
+                    float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
+
+                    if (distanceFromCreatedPos < minDistance)
                     {
+                        Console.WriteLine($"건물 {distanceFromCreatedPos}");
                         targetStructure = structure;
-                        minDistance = collisionDistance;
+                        minDistance = distanceFromCreatedPos;
                     }
                 }
 
-                foreach (Monster monster in cell.Monsters) // 몬스터 충돌
+                foreach (Monster monster in cell.Monsters)
                 {
-                    float radius = monster.Radius + missile.Radius;
-                    float collisionDistance = CollisionLineSphere(prevPos, currPos, monster.Pos, radius);
-                    float fromFireDistance = Vector3.Distance(missile.CreatedPos, monster.Pos);
-                    if (collisionDistance > 0.0f && fromFireDistance < minDistance)
+                    float combinedRadius = monster.Radius + missile.Radius;
+                    Vector3? collisionPos = CollisionLineSphere(prevPos, missile.Pos, monster.Pos, combinedRadius);
+                    if (collisionPos == null)
+                        continue;
+
+                    float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
+
+                    if (distanceFromCreatedPos < minDistance)
                     {
+                        Console.WriteLine($"몬스터 {distanceFromCreatedPos}");
                         targetMonster = monster;
-                        minDistance = fromFireDistance;
+                        minDistance = distanceFromCreatedPos;
                     }
                 }
 
                 foreach (ClientSession player in cell.Players) // 플레이어 충돌
                 {
                     float radius = player.CollisionRadius + missile.Radius;
-                    float collisionDistance = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
-                    float fromFireDistance = Vector3.Distance(missile.CreatedPos, player.Info.position);
-                    if (collisionDistance > 0.0f && fromFireDistance < minDistance && missile.ShooterId != player.Info.id)
+                    Vector3? collisionPos = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
+
+                    if (collisionPos == null)
+                        continue;
+
+                    float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
+
+                    if (distanceFromCreatedPos < minDistance && player.Info.id != missile.ShooterId)
                     {
+                        Console.WriteLine($"플레이어 {distanceFromCreatedPos}");
                         targetPlayer = player;
-                        minDistance = fromFireDistance;
+                        minDistance = distanceFromCreatedPos;
                     }
                 }
             }
 
             // 가장 가까운 충돌만 체크
-            if (targetPlayer != null)
+            if (targetPlayer != null) // 플레이어 맞음
             {
+                Console.WriteLine("플레이어 맞음");
                 OnHit(missile, targetPlayer);
             }
-            else if (targetMonster != null)
+            else if (targetMonster != null) // 몬스터 맞음
             {
+                Console.WriteLine("몬스터 맞음");
                 OnHit(missile, targetMonster);
             }
-
+            else if (targetStructure != null) // 건물 맞음
+            {
+                Console.WriteLine("건물 맞음");
+                MissileManager.Instance.Remove(missile); // 미사일 삭제
+            }
         }
 
         // 선분, 구 충돌
-        private float CollisionLineSphere(Vector3 missilePrevPos, Vector3 missileCurrPos, Vector3 center, float radius)
+        private Vector3? CollisionLineSphere(Vector3 lineStartPos, Vector3 lineEndPos, Vector3 sphereCenter, float sphereRadius)
         {
-            // 선분 벡터와 점까지 벡터
-            Vector3 missileLine = missileCurrPos - missilePrevPos;
-            Vector3 centerToMissile = center - missilePrevPos;
+            Vector3 missileVector = lineEndPos - lineStartPos;
+            float missileLength = missileVector.Length();
 
-            // 투영 계수 t 계산, 어느 지점에 위치하는지
-            // t = 그림자 길이 / 선분 전체 길이
-            //   = |centerToMissile| cosθ / |missileLine|
-            //   = |centerToMissile||missileLine| cosθ / |missileLine||missileLine|
-            //   = Dot(centerToMissile, missileLine) / missileLine.LengthSquared()
-            float t = Vector3.Dot(centerToMissile, missileLine) / missileLine.LengthSquared();
-            t = Math.Clamp(t, 0.0f, 1.0f); // 선분 범위로 제한
+            if (missileLength < 0.0001f)
+                return null;
 
-            // 수선의 발 좌표
-            Vector3 foot = missilePrevPos + t * missileLine;
+            Vector3 missileDir = missileVector / missileLength;
+            Vector3 startToCenter = sphereCenter - lineStartPos;
 
-            // 점과 수선의 발 사이 거리
-            float distance = Vector3.Distance(center, foot);
+            float projection = Vector3.Dot(startToCenter, missileDir);
+            float closestDistSqr = startToCenter.LengthSquared() - projection * projection;
+            float radiusSqr = sphereRadius * sphereRadius;
 
-            //Console.WriteLine("수선의 발 좌표: " + foot);
-            //Console.WriteLine("점에서 선분까지 거리: " + distance);
+            if (closestDistSqr > radiusSqr)
+                return null; // 충돌 없음
 
-            if (distance < radius)
-                return distance;  // 충돌 O
-            else
-                return -1; // 충돌 X
+            float offset = MathF.Sqrt(radiusSqr - closestDistSqr);
+            float hitDistance = projection - offset;
+
+            if (hitDistance < 0.0f)
+                hitDistance = 0.0f;
+            if (hitDistance > missileLength)
+                return null;
+
+            return lineStartPos + missileDir * hitDistance;
         }
 
         // 선분, 사각형 충돌
-        private float CollisionLineRect(Vector3 missilePrevPos, Vector3 missileCurrPos, Vector3 center, Vector3 size)
+        private Vector3? CollisionLineRect(Vector3 lineStartPos, Vector3 lineEndPos, Vector3 boxCenter, Vector3 boxHalfSize)
         {
-            // 직선이 사각형과 접하면 충돌, 4개 선 중 하나와는 겹쳐야 한다.
-            // 즉 4개의 선(x, y값)을 대입했을때 범위에 들어오면 접함.
+            Vector3 rayDir = lineEndPos - lineStartPos;
+            float rayLength = rayDir.Length();
 
-            Vector3 dir = missileCurrPos - missilePrevPos;
-            float length = dir.Length();
+            if (rayLength < 0.0001f)
+                return null;
 
-            if (length < 0.0001f)
-                return -1.0f;
+            rayDir /= rayLength;
 
-            Vector3 boxMin = center - size;
-            Vector3 boxMax = center + size;
+            Vector3 boxMin = boxCenter - boxHalfSize;
+            Vector3 boxMax = boxCenter + boxHalfSize;
 
-            float tMin = 0.0f;
-            float tMax = 1.0f;
+            float tEnter = 0.0f;
+            float tExit = rayLength;
 
-            if (!LineCollisionCheck(dir.X, missilePrevPos.X, boxMin.X, boxMax.X, ref tMin, ref tMax)) return -1.0f;
-            if (!LineCollisionCheck(dir.Y, missilePrevPos.Y, boxMin.Y, boxMax.Y, ref tMin, ref tMax)) return -1.0f;
-            if (!LineCollisionCheck(dir.Z, missilePrevPos.Z, boxMin.Z, boxMax.Z, ref tMin, ref tMax)) return -1.0f;
-
-            if (tMin < 0.0f)
-                tMin = 0.0f;
-
-            return length * tMin;
-        }
-
-        // 충돌 여부 체크
-        private bool LineCollisionCheck(float dir, float start, float min, float max, ref float tMin, ref float tMax)
-        {
-            if (MathF.Abs(dir) < 0.0001f)
+            for (int axis = 0; axis < 3; axis++)
             {
-                // 이 축으로 이동이 없으면 범위 안에 있어야 함
-                return start >= min && start <= max;
+                float rayComponent = axis == 0 ? rayDir.X : axis == 1 ? rayDir.Y : rayDir.Z;
+                float rayStartComponent = axis == 0 ? lineStartPos.X : axis == 1 ? lineStartPos.Y : lineStartPos.Z;
+                float min = axis == 0 ? boxMin.X : axis == 1 ? boxMin.Y : boxMin.Z;
+                float max = axis == 0 ? boxMax.X : axis == 1 ? boxMax.Y : boxMax.Z;
+
+                if (MathF.Abs(rayComponent) < 0.0001f)
+                {
+                    if (rayStartComponent < min || rayStartComponent > max)
+                        return null;
+                }
+                else
+                {
+                    float t1 = (min - rayStartComponent) / rayComponent;
+                    float t2 = (max - rayStartComponent) / rayComponent;
+
+                    if (t1 > t2)
+                    {
+                        float temp = t1; t1 = t2; t2 = temp;
+                    }
+
+                    tEnter = MathF.Max(tEnter, t1);
+                    tExit = MathF.Min(tExit, t2);
+
+                    if (tEnter > tExit)
+                        return null;
+                }
             }
 
-            float t1 = (min - start) / dir;
-            float t2 = (max - start) / dir;
+            if (tEnter < 0.0f)
+                tEnter = 0.0f;
+            if (tEnter > rayLength)
+                return null;
 
-            if (t1 > t2)
-            {
-                float temp = t1;
-                t1 = t2;
-                t2 = temp;
-            }
-
-            tMin = MathF.Max(tMin, t1);
-            tMax = MathF.Min(tMax, t2);
-
-            return tMin <= tMax;
+            return lineStartPos + rayDir * tEnter;
         }
 
         // 몬스터 미사일 충돌 후 처리

@@ -118,7 +118,7 @@ namespace Server
                     if (session.Info.id == targetId)
                         continue;
 
-                    Console.WriteLine($"{targetId} -> Server -> {session.Info.id}");
+                    //Console.WriteLine($"{targetId} -> Server -> {session.Info.id}");
 
                     session.Send(data);
                 }

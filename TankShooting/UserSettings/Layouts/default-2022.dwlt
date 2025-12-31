@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PixelRect:
     serializedVersion: 2
-    x: 0
-    y: 43
+    x: -77
+    y: 51
     width: 1920
     height: 997
   m_ShowMode: 4
-  m_Title: Hierarchy
+  m_Title: Game
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 321}
   m_MaxSize: {x: 10000, y: 10000}
-  m_Maximized: 1
+  m_Maximized: 0
 --- !u!114 &2
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -118,7 +118,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 1
-  controlID: 177
+  controlID: 175
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 178
+  controlID: 176
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -190,8 +190,8 @@ MonoBehaviour:
     y: 0
     width: 843
     height: 458
-  m_MinSize: {x: 201, y: 221}
-  m_MaxSize: {x: 4001, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 16}
   m_Panes:
   - {fileID: 16}
@@ -557,7 +557,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 73
+    y: 19
     width: 842
     height: 437
   m_SerializedDataModeController:
@@ -944,9 +944,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 165, y: 30, z: 0}
+    m_Target: {x: -1.6995177, y: -0.46679878, z: 4.506819}
     speed: 2
-    m_Value: {x: 164.99998, y: 29.999996, z: 0.00000090726587}
+    m_Value: {x: -1.6995177, y: -0.46679878, z: 4.506819}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -992,17 +992,17 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: -0.7045852, y: 0.0017149257, z: -0.0016962874, w: -0.7096607}
+    m_Target: {x: -0.6949439, y: -0.0004222644, z: 0.00040894691, w: -0.71910995}
     speed: 2
-    m_Value: {x: -0.7045643, y: 0.0006504121, z: -0.00063938746, w: -0.70963967}
+    m_Value: {x: -0.6949208, y: -0.00042225033, z: 0.00040893332, w: -0.71908605}
   m_Size:
-    m_Target: 161.94135
+    m_Target: 12.750045
     speed: 2
-    m_Value: 161.94133
+    m_Value: 12.750045
   m_Ortho:
-    m_Target: 0
+    m_Target: 1
     speed: 2
-    m_Value: 0
+    m_Value: 1
   m_CameraSettings:
     m_Speed: 1.0646999
     m_SpeedNormalized: 0.53
@@ -1059,7 +1059,7 @@ MonoBehaviour:
     m_OverlaysVisible: 1
   m_ViewTransforms:
     m_KeySerializationHelper:
-    - {fileID: -7612620211708573437, guid: 6bd069114af73814f9810a1177808dce, type: 2}
+    - {fileID: 5943356295884159073, guid: aa154e9fd2c241ef97254e0195862deb, type: 2}
     m_ValueSerializationHelper:
     - e00: 1
       e01: 0
@@ -1078,11 +1078,9 @@ MonoBehaviour:
       e32: 0
       e33: 1
   m_PreviewAnimator: {fileID: 0}
-  m_AnimatorController: {fileID: 9100000, guid: 6bd069114af73814f9810a1177808dce, type: 2}
+  m_AnimatorController: {fileID: 9100000, guid: aa154e9fd2c241ef97254e0195862deb, type: 2}
   m_BreadCrumbs:
-  - m_Target: {fileID: -723726401460063909, guid: 6bd069114af73814f9810a1177808dce, type: 2}
-    m_ScrollPosition: {x: 0, y: 0}
-  - m_Target: {fileID: -7612620211708573437, guid: 6bd069114af73814f9810a1177808dce, type: 2}
+  - m_Target: {fileID: 5943356295884159073, guid: aa154e9fd2c241ef97254e0195862deb, type: 2}
     m_ScrollPosition: {x: 0, y: 0}
   stateMachineGraph: {fileID: 0}
   stateMachineGraphGUI: {fileID: 0}
@@ -1116,7 +1114,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 531
+    y: 477
     width: 842
     height: 468
   m_SerializedDataModeController:
@@ -1213,8 +1211,8 @@ MonoBehaviour:
     m_Tooltip: 
   m_Pos:
     serializedVersion: 2
-    x: 843
-    y: 73
+    x: 844
+    y: 19
     width: 273
     height: 926
   m_SerializedDataModeController:
@@ -1232,21 +1230,21 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: d29af0ffb69bf0ff9ca3f0ffac1bfefff83b01007e3c0100863d0100
+      m_ExpandedIDs: 94a281ffa4a299ff64a399ff56ab99fff40db4fff80db4ff480eb4ffb446b4fffa06beffba07beffa00fbeff9afdc3ff70a2daff94dcddffb848deff688edeff94ccdeff6af1deff841edfffde1ceaff7e1deaffcc1deaff0237eaff0a37eaff8477edff4896edff38f6fdff8401feff4402feff2a0afeffac1bfeff04c80100ce2d0200
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: 
-        m_OriginalName: 
+        m_Name: LevelArt
+        m_OriginalName: LevelArt
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 0
+        m_UserData: 142230
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 11
+        m_OriginalEventType: 0
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 10}
       m_SearchString: 
@@ -1276,8 +1274,8 @@ MonoBehaviour:
     m_Tooltip: 
   m_Pos:
     serializedVersion: 2
-    x: 1118
-    y: 73
+    x: 1
+    y: 19
     width: 370
     height: 554
   m_SerializedDataModeController:
@@ -1301,7 +1299,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets
+    - Assets/_Prefabs
     m_Globs: []
     m_OriginalText: 
     m_ImportLogFlags: 0
@@ -1309,16 +1307,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets
+  - Assets/_Prefabs
   m_LastFoldersGridSize: 16
   m_LastProjectPath: C:\Microsoft\MinHyeok\Network\CSharp_TCP\TankShooting
   m_LockTracker:
     m_IsLocked: 1
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: d4400000
-    m_LastClickedID: 16596
-    m_ExpandedIDs: 00000000d44000001041000000ca9a3b
+    m_SelectedIDs: 10410000
+    m_LastClickedID: 16656
+    m_ExpandedIDs: 00000000d4400000e041000000420000de8a0100e28a010000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1377,15 +1375,15 @@ MonoBehaviour:
     m_ExpandedInstanceIDs: 0c69000010650000cc6900003c7902004079020004320a000a8301000c8301000e830100d47300008e5a0000ec5900002282000000000000f0880000f267000014f600001e890000487100004a68000060720000ca1b0100f21b010088b801009e820000c283000098ab00006aab0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: BustedTank
-      m_OriginalName: BustedTank
+      m_Name: Swarm08
+      m_OriginalName: Swarm08
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 65034
+      m_UserData: 127534
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
       m_OriginalEventType: 0
@@ -1422,8 +1420,8 @@ MonoBehaviour:
     m_Tooltip: 
   m_Pos:
     serializedVersion: 2
-    x: 1118
-    y: 648
+    x: 1
+    y: 594
     width: 370
     height: 351
   m_SerializedDataModeController:
@@ -1447,7 +1445,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/_Prefabs/Structure
+    - Assets/_Prefabs
     m_Globs: []
     m_OriginalText: 
     m_ImportLogFlags: 0
@@ -1455,15 +1453,15 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets/_Prefabs/Structure
+  - Assets/_Prefabs
   m_LastFoldersGridSize: 16
   m_LastProjectPath: C:\Microsoft\MinHyeok\Network\CSharp_TCP\TankShooting
   m_LockTracker:
     m_IsLocked: 1
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: f4420000
-    m_LastClickedID: 17140
+    m_SelectedIDs: 10410000
+    m_LastClickedID: 16656
     m_ExpandedIDs: 00000000d44000001041000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -1519,22 +1517,22 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: 686c0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: 
-      m_OriginalName: 
+      m_Name: Swarm08
+      m_OriginalName: Swarm08
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 0
+      m_UserData: 65038
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 11
+      m_OriginalEventType: 0
       m_IsRenamingFilename: 1
       m_ClientGUIView: {fileID: 13}
     m_CreateAssetUtility:
@@ -1568,8 +1566,8 @@ MonoBehaviour:
     m_Tooltip: 
   m_Pos:
     serializedVersion: 2
-    x: 1490
-    y: 73
+    x: 1491
+    y: 19
     width: 429
     height: 926
   m_SerializedDataModeController:

@@ -27,7 +27,7 @@ namespace Server
             Speed = 2.0f;
             Damage = 5;
             Rot = Vector3.Zero;
-            Radius = 1.5f;
+            Radius = 1.0f;
         }
 
         public Monster(MonsterSpawnData spawnData)
@@ -40,6 +40,7 @@ namespace Server
             Point = (ushort)monsterData.Point;
             Pos = new Vector3(spawnData.xPos, spawnData.yPos, spawnData.zPos);
             Rot = new Vector3(spawnData.xRot, spawnData.yRot, spawnData.zRot);
+            Radius = 1.5f;
         }
         
         /*
@@ -99,7 +100,7 @@ namespace Server
             // TODO: 몬스터 소멸 시 모든 클라에게 누가 쓰러뜨렸는지 전달, 클라에서는 받아서 알림창에 띄움
             // TODO: 몬스터 소멸 시 쓰러뜨린 클라에게 점수 추가(서버 내부에서), 점수는 1초에 1번씩 각 클라에게 전송
             // TODO: 몬스터 소멸 시 해당 위치에 새로운 회복 아이템 생성
-
+            Console.WriteLine("맞음");
 
             if (CurHP <= dmg) // 체력 0 시 소멸
             {

@@ -1044,8 +1044,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MonsterPrefabs:
-  - {fileID: 2391359435489877134, guid: 73be2d32e1406974b87243c7e13ec870, type: 3}
-  - {fileID: 1467277096911013437, guid: 32017494b33160f4cba9fab2c72daa6b, type: 3}
+  - {fileID: 3604547587024057588, guid: 73be2d32e1406974b87243c7e13ec870, type: 3}
+  - {fileID: 443150050327043889, guid: 32017494b33160f4cba9fab2c72daa6b, type: 3}
 --- !u!1 &542665320
 GameObject:
   m_ObjectHideFlags: 0
@@ -2220,7 +2220,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
-  m_LocalPosition: {x: 0, y: 2, z: -2}
+  m_LocalPosition: {x: 0, y: 3, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3339,7 +3339,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 488946, guid: 1cd1bdb2203012a40ab12a0d2fd7aa88, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.75
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 488946, guid: 1cd1bdb2203012a40ab12a0d2fd7aa88, type: 3}
       propertyPath: m_LocalPosition.z
