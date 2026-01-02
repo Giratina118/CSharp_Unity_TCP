@@ -38,6 +38,8 @@ namespace Server
         public static MissileManager Instance { get; } = new MissileManager();
 
         public List<Missile> Missiles = new List<Missile>();
+
+        const float PI = 3.141592f;
         private int _missilesId = 0;
         private Vector3 _muzzle = new Vector3(0.0f, 0.5f, 0.0f);
 
@@ -59,8 +61,6 @@ namespace Server
                 CollisionSystem.Instance.MissileCollisionCheck(prevPos, missile.Pos, missile);
             }
         }
-
-        const float PI = 3.141592f;
 
         // 새 미사일 추가
         public void Add(ObjectInfo Info)

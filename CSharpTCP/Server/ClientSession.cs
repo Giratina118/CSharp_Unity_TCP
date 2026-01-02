@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
@@ -15,14 +16,27 @@ namespace Server
     public class ClientSession : PacketSession
     {
         public string Name = ""; // 이름
+        public ushort CurHP = 100;
+        public ushort MaxHP = 100;
+        public float CollisionRadius = 1.2f;
         public ObjectInfo Info = new ObjectInfo();
 
         private float _moveSpeed = 4.0f;       // 이동 속도
         private float _updateInterval = 0.25f; // 갱신 간격
         private DateTime _beforeRequestTime;
-        private int missileNum = 0;
-        public float CollisionRadius = 1.2f;
+        
         // TODO: 클라들 점수 추가, 점수 관리 및 업데이트(1초 마다 클라들에게 전송)
+
+        public void Hit(ushort dmg)
+        {
+            if (CurHP <= dmg) // 체력 0 시 소멸
+            {
+                CurHP = 0;
+                //Die();
+            }
+            else
+                CurHP -= dmg;
+        }
 
         // 연결되면 실행
         public override void OnConnected(EndPoint endPoint)

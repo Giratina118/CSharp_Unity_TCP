@@ -7,7 +7,7 @@ public class MonsterManager : MonoBehaviour
 {
     public static MonsterManager Instance { get; private set; }
 
-    public Dictionary<long, GameObject> MonsterObjDic = new Dictionary<long, GameObject>(); // 몬스터 번호, 오브젝트
+    public Dictionary<long, MonsterController> MonsterObjDic = new Dictionary<long, MonsterController>(); // 몬스터 번호, 오브젝트
     public List<GameObject> MonsterPrefabs;     // 몬스터 프리팹
 
     private List<ObjectInfo> _monsterInfosTemp; // 모든 몬스터 생성 시 정보 받아서 저장
@@ -95,6 +95,6 @@ public class MonsterManager : MonoBehaviour
         newMonster.transform.parent = _monsterParent.transform;
 
         // 딕셔너리에 새 캐릭터 추가
-        MonsterObjDic.Add(_newMonsterInfo.Id, newMonster);
+        MonsterObjDic.Add(_newMonsterInfo.Id, newMonster.GetComponent<MonsterController>());
     }
 }

@@ -21,6 +21,7 @@ namespace Client
         CreateAll,          // 처음 들어왔을 때 먼저 들어와 있던 플레이어들 모두 생성
         Move,               // 어떤 플레이어를 어디로 움직여야 하는지
         Chat,               // 어떤 플레이어가 어떤 채팅을 쳤는지
+        Damage,             // 유저/몬스터 데미지 전송
 
         Max,
     }
@@ -43,6 +44,9 @@ namespace Client
         MoveMonster,    // 몬스터 이동
         MoveMissile,    // 미사일 이동
         RollbackPlayer, // 플레이어 롤백
+
+        DamagePlayer,   // 플레이어 데미지
+        DamageMonster,  // 몬스터 데미지
 
         Max,
     };
@@ -435,5 +439,75 @@ namespace Client
             this.Chat = Encoding.Unicode.GetString(span.Slice(count, chatLen));
             count += chatLen;
         }
+    }
+
+    // 데미지 관리
+    class DamagePacket : Packet
+    {
+        public long hitId;    // 어떤 유저/몬스터가 데미지를 입었는지
+        public long attackId; // 어떤 유저가 데미지를 입혔는지
+        public ushort messageType; // 유저인지 몬스터인지
+        public ushort damage; // 얼마의 피해를 입었는지
+        public ushort curHp;  // 현재 체력
+        public ushort maxHp;  // 최대 체력
+
+        public DamagePacket() { this.PacketType = (ushort)Client.PacketType.Damage; }
+
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte> segment = SendBufferHelper.Open(4096);
+
+            bool success = true;
+            ushort count = 0; // 지금까지 몇 Byte를 Buffer에 밀어 넣었는가?
+
+            Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort); // 패킷 사이즈
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType);
+            count += sizeof(ushort); // 패킷 유형
+
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.hitId);
+            count += sizeof(long);   // 플레이어/몬스터 아이디
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.attackId);
+            count += sizeof(long);   // 플레이어 아이디
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
+            count += sizeof(ushort); // 메시지 타입(생성/삭제 여부)
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.damage);
+            count += sizeof(ushort); // 데미지
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.curHp);
+            count += sizeof(ushort); // 현재 체력
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.maxHp);
+            count += sizeof(ushort); // 현재 체력
+
+            success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
+
+            if (success == false)
+                return null;
+
+            return SendBufferHelper.Close(count);
+        }
+
+        public override void Read(ArraySegment<byte> segment)
+        {
+            ushort count = 0;
+            ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort); // 패킷 사이즈
+            count += sizeof(ushort); // 패킷 아이디
+
+            this.hitId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            count += sizeof(long);   // 플레이어/몬스터 아이디
+            this.attackId = BitConverter.ToInt64(span.Slice(count, span.Length - count));
+            count += sizeof(long);   // 플레이어 아이디
+            this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 메시지 타입(생성/삭제 여부)
+            this.damage = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 데미지
+            this.curHp = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 현재 체력
+            this.maxHp = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort); // 현재 체력
+        }
+
     }
 }

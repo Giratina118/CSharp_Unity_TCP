@@ -53,6 +53,7 @@ namespace Client
                 case PacketType.CreateAll:     OnRecvCreateAll(buffer);     break;
                 case PacketType.Move:          OnRecvMove(buffer);          break;
                 case PacketType.Chat:          OnRecvChat(buffer);          break;
+                case PacketType.Damage:        OnRecvDamage(buffer);        break;
             }
         }
 
@@ -180,6 +181,38 @@ namespace Client
 
             // 채팅창에 업데이트
             ChatManager.Instance.RecvChatting(chatPacket.Chat);
+        }
+
+        // Damage 패킷 받음
+        public void OnRecvDamage(ArraySegment<byte> buffer)
+        {
+            DamagePacket damagePacket = new DamagePacket();
+            damagePacket.Read(buffer);
+
+            switch ((ushort)damagePacket.messageType)
+            {
+                case (ushort)MsgType.DamagePlayer:
+                    // 체력 감소, 공격자가 본인이면 데미지 표시 띄우기, 피해자가 본인이면 빨간 이펙트 띄우기
+                    if (damagePacket.hitId == ClientProgram.Instance.ClientId)
+                    {
+                        // 본인 체력 감소
+                    }
+                    if (damagePacket.attackId == ClientProgram.Instance.ClientId)
+                    {
+                        // 데미지 표시 띄우기
+                    }
+
+                    break;
+
+                case (ushort)MsgType.DamageMonster:
+                    // 체력 감소, 공격자가 본인이면 데미지 표시 띄우기
+                    MonsterManager.Instance.MonsterObjDic[damagePacket.hitId].OnTriggerHit(damagePacket.damage, damagePacket.curHp, damagePacket.maxHp);
+                    if (damagePacket.attackId == ClientProgram.Instance.ClientId)
+                    {
+                        // 데미지 표시 띄우기
+                    }
+                    break;
+            }
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Server
                     }
                 }
 
-                foreach (Monster monster in cell.Monsters)
+                foreach (Monster monster in cell.Monsters) // 몬스터 충돌
                 {
                     float combinedRadius = monster.Radius + missile.Radius;
                     Vector3? collisionPos = CollisionLineSphere(prevPos, missile.Pos, monster.Pos, combinedRadius);
@@ -166,7 +166,9 @@ namespace Server
 
                     if (t1 > t2)
                     {
-                        float temp = t1; t1 = t2; t2 = temp;
+                        float temp = t1; 
+                        t1 = t2; 
+                        t2 = temp;
                     }
 
                     tEnter = MathF.Max(tEnter, t1);
@@ -195,17 +197,28 @@ namespace Server
             Console.WriteLine($"몬스터 맞춤 {monster.Type}, {monster.CurHP}/{monster.MaxHP}");
 
             MissileManager.Instance.Remove(missile); // 미사일 제거
-            // TODO: 몬스터 공격 성공한 플레이어(shooter)에게 공격 성공 전달(전달 요소: 데미지, 피격 대상 위치)
 
+            // 몬스터 공격 성공한 플레이어(shooter)에게 공격 성공 전달(전달 요소: 데미지, 피격 대상 위치)
+            DamagePacket damagePacket = new DamagePacket() 
+            { messageType = (ushort)MsgType.DamageMonster, hitId = monster.Id, attackId = missile.ShooterId, damage = missile.Damage, curHp = monster.CurHP, maxHp = monster.MaxHP };
+            ArraySegment<byte> segment = damagePacket.Write();
+            if (damagePacket != null)
+                SessionManager.Instance.BroadcastAll(segment);
         }
 
         // 플레이어 미사일 충돌 후 처리
         private void OnHit(Missile missile, ClientSession player)
         {
             missile.IsRemoved = true;
+            player.Hit(missile.Damage);
             Console.WriteLine($"플레이어 맞춤 {player.Name}");
 
             MissileManager.Instance.Remove(missile); // 미사일 제거
+
+            DamagePacket damagePacket = new DamagePacket() { messageType = (ushort)MsgType.DamagePlayer, hitId = player.Info.id, attackId = missile.ShooterId, damage = missile.Damage, curHp = player.CurHP };
+            ArraySegment<byte> segment = damagePacket.Write();
+            if (damagePacket != null)
+                SessionManager.Instance.BroadcastAll(segment);
 
             // TODO: 플레이어 피격 처리(서버 내부), 클라이언트 세션에서 체력 관리 및 피격 함수 생성, 거기서 피격당한 플레이어에게 전달
             // TODO: 플레이어 체력에 따라 소멸 처리, 다른 클라들에게 누가 쓰러뜨렸는지 전달, 쓰러뜨린 플레이어는 쓰러진 플레이어가 가지고 있던 점수의 절반 획득

@@ -11,6 +11,7 @@ namespace Server
 {
     public class Monster
     {
+        public ushort Id;     // 몬스터 id
         public ushort Type;   // 몬스터 고유 번호
         public ushort MaxHP;  // 최대 체력
         public ushort CurHP;  // 현재 체력
@@ -176,6 +177,7 @@ namespace Server
         public void Add(Monster monster)
         {
             _monsterId++;
+            monster.Id = _monsterId;
             Monsters.Add(_monsterId, monster);
             SpatialGrid.Instance.AddMonster(monster);
         }
