@@ -124,5 +124,11 @@ namespace Server
                 }
             }
         }
+
+        // 점수 전송
+        public void UpdatePoint()
+        {
+            // TODO: 점수 전송
+        }
     }
 }

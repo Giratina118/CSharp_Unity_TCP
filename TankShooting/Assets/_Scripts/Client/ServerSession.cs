@@ -107,8 +107,12 @@ namespace Client
                     break;
 
                 case (ushort)MsgType.CreateMissile:
-                    // 플레이어 아이지로 생성할 미사일 위치, 방향 결정
+                    // 플레이어 아이디로 생성할 미사일 위치, 방향 결정
                     MissileManager.Instance.OnTriggerCreateMissile(crPacket.PlayerId);
+                    break;
+
+                case (ushort)MsgType.RemoveMissile:
+                    // 미사일 삭제
                     break;
             }
         }

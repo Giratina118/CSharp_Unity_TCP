@@ -1044,8 +1044,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MonsterPrefabs:
-  - {fileID: 3604547587024057588, guid: 73be2d32e1406974b87243c7e13ec870, type: 3}
-  - {fileID: 443150050327043889, guid: 32017494b33160f4cba9fab2c72daa6b, type: 3}
+  - {fileID: 5882087919058392963, guid: 73be2d32e1406974b87243c7e13ec870, type: 3}
+  - {fileID: 4147061707248327673, guid: 32017494b33160f4cba9fab2c72daa6b, type: 3}
 --- !u!1 &542665320
 GameObject:
   m_ObjectHideFlags: 0

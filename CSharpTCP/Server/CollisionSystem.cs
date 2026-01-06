@@ -48,6 +48,9 @@ namespace Server
 
                 foreach (Monster monster in cell.Monsters) // 몬스터 충돌
                 {
+                    if (monster.IsDie)
+                        continue;
+
                     float combinedRadius = monster.Radius + missile.Radius;
                     Vector3? collisionPos = CollisionLineSphere(prevPos, missile.Pos, monster.Pos, combinedRadius);
                     if (collisionPos == null)
@@ -210,6 +213,20 @@ namespace Server
         private void OnHit(Missile missile, ClientSession player)
         {
             missile.IsRemoved = true;
+            
+            if (player.CurHP <= missile.Damage)
+            {
+                // 채팅 전송
+                ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{}님이 퇴장하셨습니다." };
+                ArraySegment<byte> chatSegment = chatPacket.Write();
+                if (chatPacket != null)
+                    SessionManager.Instance.BroadcastAll(chatSegment);
+
+                // TODO: 점수 전송
+                SessionManager.Instance.Sessions[missile.ShooterId].Point += player.Point / 2;
+                // missile.ShooterId;
+            }
+
             player.Hit(missile.Damage);
             Console.WriteLine($"플레이어 맞춤 {player.Name}");
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -21,6 +22,15 @@ namespace Server
         public Vector3 Pos;   // 위치
         public Vector3 Rot;   // 회전
         public float Radius;  // 반지름
+        public bool IsDie;    // 사망 여부
+
+        private Vector3 _spawnPos;
+        private Vector3 _targetPos;
+        private Vector3 _moveDir;
+        private float _moveInterval = 3.0f; // 리스폰 간격
+        private float _moveTimer = 0.0f; // 리스폰 타이머
+        private float _respawnInterval = 20.0f; // 리스폰 간격
+        private float _respawnTimer = 0.0f; // 리스폰 타이머
 
         public Monster()
         {
@@ -29,6 +39,7 @@ namespace Server
             Damage = 5;
             Rot = Vector3.Zero;
             Radius = 1.0f;
+            IsDie = false;
         }
 
         public Monster(MonsterSpawnData spawnData)
@@ -42,56 +53,54 @@ namespace Server
             Pos = new Vector3(spawnData.xPos, spawnData.yPos, spawnData.zPos);
             Rot = new Vector3(spawnData.xRot, spawnData.yRot, spawnData.zRot);
             Radius = 1.5f;
+            IsDie = false;
+            _spawnPos = Pos;
         }
         
-        /*
-        public bool Write(Span<byte> span, ref ushort count)
-        {
-            bool success = true;
-
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.Type);
-            count += sizeof(ushort); // 고유 번호
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.MaxHP);
-            count += sizeof(ushort); // 최대 체력
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.CurHP);
-            count += sizeof(ushort); // 현재 체력
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.Speed);
-            count += sizeof(float);  // 이동 속도
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.Damage);
-            count += sizeof(ushort); // 공격력
-
-            success &= Utils.WriteVector3(Pos, ref span, ref count); // 이동
-            success &= Utils.WriteVector3(Rot, ref span, ref count); // 회전
-
-            return success;
-        }
-
-        public void Read(ReadOnlySpan<byte> span, ref ushort count)
-        {
-            Type = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
-            count += sizeof(ushort); // 고유 번호
-            MaxHP = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
-            count += sizeof(ushort); // 최대 체력
-            CurHP = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
-            count += sizeof(ushort); // 현재 체력
-            Speed = BitConverter.ToSingle(span.Slice(count, span.Length - count));
-            count += sizeof(float);  // 이동 속도
-            Damage = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
-            count += sizeof(ushort); // 공격력
-
-            Utils.ReadVector3(ref Pos, span, ref count); // 이동
-            Utils.ReadVector3(ref Rot, span, ref count); // 회전
-        }
-        */
         
-        public void Update()
+        public void Update(float deltaTime)
         {
-            
+            if (IsDie)
+            {
+                _respawnTimer += deltaTime;
+                if (_respawnTimer > _respawnInterval)
+                {
+                    _respawnTimer = 0.0f;
+                    IsDie = false;
+                    Pos = _spawnPos;
+
+                    // TODO: 모든 클라에게 리스폰 전송
+
+                }
+            }
+            else
+            {
+                Move(deltaTime);
+            }
         }
 
         public void Move(float deltaTime)
         {
+            // 일정 시간마다 갱신
+            _moveTimer += deltaTime;
+            if (_moveTimer > _moveInterval)
+            {
+                _moveTimer = 0.0f;
 
+                Random rand = new Random();
+                float x = Pos.X + rand.Next(0, 11) - 5;
+                float z = Pos.Z + rand.Next(0, 11) - 5;
+                _targetPos = new Vector3(x, 0, z);
+                _moveDir = _targetPos - Pos;
+
+                float vecLen = MathF.Sqrt(_moveDir.X * _moveDir.X + _moveDir.Z * _moveDir.Z);
+                _moveDir.X /= vecLen;
+                _moveDir.Y = 0.0f;
+                _moveDir.Z /= vecLen;
+            }
+
+            Pos += _moveDir;
+            
         }
 
         // 피격
@@ -115,7 +124,10 @@ namespace Server
         // 소멸
         private void Die()
         {
-            SpatialGrid.Instance.RemoveMonster(this);
+            IsDie = true;
+            // TODO: 모든 클라에게 소멸 전송
+
+            //SpatialGrid.Instance.RemoveMonster(this);
         }
     }
 
@@ -191,10 +203,18 @@ namespace Server
             {
                 Vector3 prev = monster.Pos;
 
-                monster.Move(deltaTime);
+                monster.Update(deltaTime);
 
+                
                 SpatialGrid.Instance.UpdateMonster(monster, prev); // ⭐
             }
+
+            // TODO: 몬스터 위치 정보 클라에 전송
+            MovePacket movePacket = new MovePacket() { messageType = (ushort)MsgType.MoveMonster, playerInfo = new ObjectInfo { id } };
+            ArraySegment<byte> chatSegment = movePacket.Write();
+            BroadcastAll(chatSegment);
+
+
             /*
             _remainTime -= deltaTime;
 

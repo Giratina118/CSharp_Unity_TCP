@@ -134,7 +134,7 @@ namespace ServerCore
         // 수신 이후
         void OnRecvCompleted(object sender, SocketAsyncEventArgs args)
         {
-            UnityEngine.Debug.Log(args.BytesTransferred);
+            //UnityEngine.Debug.Log(args.BytesTransferred);
             // 내가 몇 byte를 받았는지 체크
             if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {

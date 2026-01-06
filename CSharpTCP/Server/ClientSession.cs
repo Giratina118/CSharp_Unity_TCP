@@ -20,6 +20,7 @@ namespace Server
         public ushort MaxHP = 100;
         public float CollisionRadius = 1.2f;
         public ObjectInfo Info = new ObjectInfo();
+        public int Point = 0;
 
         private float _moveSpeed = 4.0f;       // 이동 속도
         private float _updateInterval = 0.25f; // 갱신 간격
@@ -32,6 +33,13 @@ namespace Server
             if (CurHP <= dmg) // 체력 0 시 소멸
             {
                 CurHP = 0;
+
+                // TODO: 접속 해제 시키기
+                CreateRemovePacket crPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RemovePlayer, playerId = Info.id };
+
+                ArraySegment<byte> playerSegment = crPacket.Write();
+                if (crPacket != null)
+                    SessionManager.Instance.BroadcastAll(playerSegment);
                 //Die();
             }
             else

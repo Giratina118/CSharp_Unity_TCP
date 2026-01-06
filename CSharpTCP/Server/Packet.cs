@@ -15,6 +15,12 @@ using System.Xml.Linq;
 
 namespace Server
 {
+    // 추가해야할 패킷
+    // 점수 패킷
+    // 아이템 사용 패킷
+    // 몬스터 이동 패킷을 따로 만들자(서버에서 일괄로 합쳐서 보낼 수 있도록)
+
+
     // 패킷 유형
     public enum PacketType
     {

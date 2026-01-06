@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
 {
     public Transform[] WheelObjects;  // 바퀴 오브젝트들
     public Transform Muzzle;          // 총구
+    public bool IsMine = false;       // 본인 오브젝트인지
 
     private Camera _camera; // 카메라
     private long _clientId; // 클라이언트 아이디
@@ -23,7 +24,6 @@ public class PlayerController : MonoBehaviour
     private float _rotSpeed = 90.0f; // 회전 속도
     private float _wheelSpeed = 150; // 바퀴 회전 속도
 
-    private bool _isMine = false;          // 본인 오브젝트인지
     private bool _isRollback = false;      // 롤백 여부
     private bool _isUpdatePos = false;     // 위치 업데이트 여부
     private float _updateInterval = 0.25f; // 위치 업데이트 주기
@@ -42,7 +42,7 @@ public class PlayerController : MonoBehaviour
     // 플레이어 오브젝트 초기화
     public void SetMine(bool isMine, long playerId)
     {
-        _isMine = isMine;
+        IsMine = isMine;
         _clientId = playerId;
         GetComponent<Collider>().enabled = true;
 
@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
             _camera.transform.rotation = Quaternion.Euler(20f, 0f, 0f);
             _camera.transform.SetParent(this.transform);
 
-            if (_isMine)
+            if (IsMine)
                 StartCoroutine(SendMove()); // 위치 정보 갱신
         }
     }
@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
     // 다른 플레이어 위치 업데이트 트리거
     public void OnTriggerUpdateOtherPos(ObjectInfo info)
     {
-        if (info.Id != _clientId || _isMine)
+        if (info.Id != _clientId || IsMine)
             return;
 
         //Debug.Log($"Update Other Pos | my id: {ClientProgram.Instance.ClientId}, recv id: {info.id}");
@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour
     // 다른 플레이어 위치 업데이트
     public void UpdateOtherPos()
     {
-        if (_isMine)
+        if (IsMine)
             return;
 
         _updateTimer += Time.deltaTime;
@@ -105,7 +105,7 @@ public class PlayerController : MonoBehaviour
     // 롤백 트리거
     public void OnTriggerPlayerRollback(ObjectInfo rollbackInfo)
     {
-        if (!_isMine) // 롤백이 아니면 넘김
+        if (!IsMine) // 롤백이 아니면 넘김
             return;
 
         _isRollback = true;
@@ -118,7 +118,7 @@ public class PlayerController : MonoBehaviour
     // 이동 (본인 오브젝트)
     public void Movement()
     {
-        if (!_isMine)
+        if (!IsMine)
             return;
 
         if (_isRollback)
@@ -164,7 +164,7 @@ public class PlayerController : MonoBehaviour
     // 바퀴 회전
     public void RotateWheel(float h, float v)
     {
-        if (!_isMine)
+        if (!IsMine)
             return;
 
         Vector3 rightWheelRotate = Vector3.zero, leftWheelRotate = Vector3.zero;
