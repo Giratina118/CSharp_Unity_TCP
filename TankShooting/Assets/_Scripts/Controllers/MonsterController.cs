@@ -2,18 +2,28 @@ using Client;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
 
 public class MonsterController : MonoBehaviour
 {
     public GameObject Canvas;
     public Image HPBar;
+    public Vector3 SpawnPos;
 
     private GameObject _player = null;
     private bool _isHit = false;
     private int _damage;
     private int _curHP;
     private int _maxHP;
+    private float _speed;
+    private float _hpBarVisibleDistance = 20.0f; // hp바 가시거리
+
+    enum MonsterKey
+    {
+        Ray = 1001,
+        Bee = 2001,
+    }
 
     void Start()
     {
@@ -24,10 +34,31 @@ public class MonsterController : MonoBehaviour
 
     void Update()
     {
-        if (_player != null)
-            Canvas.transform.LookAt(_player.transform);
-        if (_isHit)
-            Hit();
+        if (_player != null && Canvas.gameObject.activeSelf)
+        {
+            if (Vector3.Distance(_player.transform.position, gameObject.transform.position) > _hpBarVisibleDistance)
+                Canvas.gameObject.SetActive(false);
+        }
+        if (!Canvas.gameObject.activeSelf && Vector3.Distance(_player.transform.position, gameObject.transform.position) < _hpBarVisibleDistance)
+            Canvas.gameObject.SetActive(true);
+
+        Hit();
+        Move();
+    }
+
+    public void Init(ObjectInfo info)
+    {
+        switch (info.ObjType)
+        {
+            case (ushort)MonsterKey.Ray:
+                _speed = 1.5f;
+                break;
+
+            case (ushort)MonsterKey.Bee:
+                _speed = 2.0f;
+                break;
+        }
+        SpawnPos = info.Position;
     }
 
     IEnumerator ConnectWithPlayer()
@@ -46,8 +77,16 @@ public class MonsterController : MonoBehaviour
 
     public void Hit()
     {
+        if (!_isHit)
+            return;
+
         _isHit = false;
         HPBar.fillAmount = (float)_curHP / (float)_maxHP;
         Debug.Log($"{HPBar.fillAmount} {_curHP}/{_maxHP}");
+    }
+
+    public void Move()
+    {
+        transform.Translate(Vector3.forward * _speed * Time.deltaTime);
     }
 }

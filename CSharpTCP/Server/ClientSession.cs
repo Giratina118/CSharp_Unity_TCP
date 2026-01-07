@@ -35,9 +35,10 @@ namespace Server
                 CurHP = 0;
 
                 // TODO: 접속 해제 시키기
-                CreateRemovePacket crPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RemovePlayer, playerId = Info.id };
+                CreateRemovePacket crPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.DieMe, id = Info.id };
 
                 ArraySegment<byte> playerSegment = crPacket.Write();
+                Send(playerSegment);
                 if (crPacket != null)
                     SessionManager.Instance.BroadcastAll(playerSegment);
                 //Die();
@@ -65,7 +66,7 @@ namespace Server
             Console.WriteLine($"OnDisconnected : {endPoint}");
 
             // 연결 해제된 플레이어의 오브젝트 제거
-            CreateRemovePacket packet = new CreateRemovePacket() { playerId = Info.id, messageType = (ushort)MsgType.RemovePlayer };
+            CreateRemovePacket packet = new CreateRemovePacket() { id = Info.id, messageType = (ushort)MsgType.RemovePlayer };
             ArraySegment<byte> segment = packet.Write();
             SessionManager.Instance.BroadcastExcept(segment, Info.id);
 
@@ -130,7 +131,7 @@ namespace Server
             CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
 
-            Console.WriteLine($"CreateRemove | ID: {crPacket.playerId}, messageType: {(MsgType)crPacket.messageType}\n");
+            Console.WriteLine($"CreateRemove | ID: {crPacket.id}, messageType: {(MsgType)crPacket.messageType}\n");
 
             
             switch ((int)crPacket.messageType)
@@ -164,8 +165,8 @@ namespace Server
             if (movePacket.messageType != (ushort)MsgType.MovePlayer)
                 return;
 
-            Vector3 newPos = movePacket.playerInfo.position;
-            Vector3 newRot = movePacket.playerInfo.rotation;
+            Vector3 newPos = movePacket.objInfo.position;
+            Vector3 newRot = movePacket.objInfo.rotation;
 
 
             Vector3 prev = Info.position;
@@ -206,7 +207,7 @@ namespace Server
             {
                 _isrollback = false;
                 movePacket.messageType = (ushort)MsgType.RollbackPlayer;
-                movePacket.playerInfo = Info;
+                movePacket.objInfo = Info;
                 ArraySegment<byte> rollbackSegment = movePacket.Write();
                 Send(rollbackSegment);
                 return;

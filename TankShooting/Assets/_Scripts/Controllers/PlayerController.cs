@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,7 +29,10 @@ public class PlayerController : MonoBehaviour
     private bool _isUpdatePos = false;     // 위치 업데이트 여부
     private float _updateInterval = 0.25f; // 위치 업데이트 주기
     private float _updateTimer = 0.0f;     // 위치 업데이트 타이머
-    
+
+    private Image _hpBar;
+    private int _maxHp = 100;
+
 
     void Update()
     {
@@ -53,8 +57,9 @@ public class PlayerController : MonoBehaviour
             _camera.transform.rotation = Quaternion.Euler(20f, 0f, 0f);
             _camera.transform.SetParent(this.transform);
 
-            if (IsMine)
-                StartCoroutine(SendMove()); // 위치 정보 갱신
+            _hpBar = GameObject.Find("HpBar").GetComponent<Image>();
+
+            StartCoroutine(SendMove()); // 위치 정보 갱신
         }
     }
 
@@ -193,5 +198,11 @@ public class PlayerController : MonoBehaviour
         WheelObjects[1].Rotate(new Vector3(wheelRotateR, 0, 0) * Time.deltaTime);
         WheelObjects[2].Rotate(new Vector3(wheelRotateL, 0, 0) * Time.deltaTime);
         WheelObjects[3].Rotate(new Vector3(wheelRotateR, 0, 0) * Time.deltaTime);
+    }
+
+    // hp바 업데이트
+    public void UpdateHpbar(int curHp)
+    {
+        _hpBar.fillAmount = (float)curHp / _maxHp; ;
     }
 }

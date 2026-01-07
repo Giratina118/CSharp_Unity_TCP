@@ -47,7 +47,7 @@ public class MissileManager : MonoBehaviour
     // 固荤老 积己 傈价
     public void SendMissile()
     {
-        CreateRemovePacket packet = new CreateRemovePacket() { PlayerId = ClientProgram.Instance.ClientId, MessageType = (ushort)MsgType.CreateMissile };
+        CreateRemovePacket packet = new CreateRemovePacket() { id = ClientProgram.Instance.ClientId, MessageType = (ushort)MsgType.CreateMissile };
         ArraySegment<byte> segment = packet.Write();
         ClientProgram.Instance.Connector.CurrentSession.Send(segment);
     }

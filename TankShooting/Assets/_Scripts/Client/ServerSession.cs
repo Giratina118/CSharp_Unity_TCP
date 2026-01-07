@@ -50,7 +50,7 @@ namespace Client
                 case PacketType.PlayerInfoReq: OnRecvPlayerInfoReq(buffer); break;
                 case PacketType.PlayerInfoOk:  OnRecvPlayerInfoOk(buffer);  break;
                 case PacketType.CreateRemove:  OnRecvCreateRemove(buffer);  break;
-                case PacketType.CreateAll:     OnRecvCreateAll(buffer);     break;
+                case PacketType.ObjList:       OnRecvObjectList(buffer);     break;
                 case PacketType.Move:          OnRecvMove(buffer);          break;
                 case PacketType.Chat:          OnRecvChat(buffer);          break;
                 case PacketType.Damage:        OnRecvDamage(buffer);        break;
@@ -90,55 +90,72 @@ namespace Client
             CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
 
-            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.PlayerId}, messageType : {crPacket.MessageType}\n");
+            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.id}, messageType : {crPacket.MessageType}\n");
 
             switch ((ushort)crPacket.MessageType)
             {
                 case (ushort)MsgType.CreatePlayer:
                     // 플레이어 아이디로 특정 플레이어 생성
                     ObjectInfo playerInfo = new ObjectInfo();
-                    playerInfo.Id = crPacket.PlayerId;
+                    playerInfo.Id = crPacket.id;
                     PlayerManager.Instance.OnTriggerCreateCharacter(playerInfo);
                     break;
 
                 case (ushort)MsgType.RemovePlayer:
                     // 플레이어 아이디로 특정 플레이어의 오브젝트 삭제
-                    PlayerManager.Instance.OnTriggerRemoveExitCharacter(crPacket.PlayerId);
+                    PlayerManager.Instance.OnTriggerRemoveExitCharacter(crPacket.id);
                     break;
 
                 case (ushort)MsgType.CreateMissile:
                     // 플레이어 아이디로 생성할 미사일 위치, 방향 결정
-                    MissileManager.Instance.OnTriggerCreateMissile(crPacket.PlayerId);
+                    MissileManager.Instance.OnTriggerCreateMissile(crPacket.id);
                     break;
 
-                case (ushort)MsgType.RemoveMissile:
-                    // 미사일 삭제
+                case (ushort)MsgType.RespawnMonster:
+                    // 몬스터 리스폰(켜기)
+                    MonsterManager.Instance.OnTriggerRespawn(crPacket.id);
+                    break;
+
+                case (ushort)MsgType.RemoveMonster:
+                    // 몬스터 끄기
+                    MonsterManager.Instance.OnTriggerRemoveMonster(crPacket.id);
                     break;
             }
         }
 
         // CreateAll 패킷 받음
-        public void OnRecvCreateAll(ArraySegment<byte> buffer)
+        public void OnRecvObjectList(ArraySegment<byte> buffer)
         {
-            CreateAll crPacket = new CreateAll();
-            crPacket.Read(buffer);
-            Debug.Log($"create all {(MsgType)crPacket.MessageType}");
+            ObjListPacket objListPacket = new ObjListPacket();
+            objListPacket.Read(buffer);
+            Debug.Log($"create all {(MsgType)objListPacket.MessageType}");
 
-            switch (crPacket.MessageType)
+            switch (objListPacket.MessageType)
             {
                 case (ushort)MsgType.CreateAllPlayer:
                     // 자신이 들어오기 전 먼저 들어와 있던 플레이어들의 오브젝트 생성
-                    PlayerManager.Instance.OnTriggerCreateCharacterAll(crPacket.ObjInfos);
+                    PlayerManager.Instance.OnTriggerCreateCharacterAll(objListPacket.ObjInfos);
                     break;
 
                 case (ushort)MsgType.CreateAllMonster:
                     // 자신이 들어오기 전 먼저 생성되어 있는 모든 몬스터 생성
-                    MonsterManager.Instance.OnTriggerCreateMonsterAll(crPacket.ObjInfos);
+                    MonsterManager.Instance.OnTriggerCreateMonsterAll(objListPacket.ObjInfos);
                     break;
 
                 case (ushort)MsgType.CreateAllStructure:
                     // 모든 건물 생성
-                    StructureManager.Instance.OnTriggerCreateStructureAll(crPacket.ObjInfos);
+                    StructureManager.Instance.OnTriggerCreateStructureAll(objListPacket.ObjInfos);
+                    break;
+
+                case (ushort)MsgType.MonsterInfoList:
+                    // 몬스터 위치 업데이트
+                    Debug.Log("recv monster info");
+                    MonsterManager.Instance.OnTriggerUpdatePos(objListPacket.ObjInfos);
+                    break;
+
+                case (ushort)MsgType.DieMe:
+                    // 본인이 죽었다면
+                    ClientProgram.Instance.OnClickDisconnectButton();
                     break;
             }
         }
@@ -163,14 +180,6 @@ namespace Client
 
                 case (ushort)MsgType.RollbackPlayer:
                     PlayerManager.Instance.PlayerObjDic[playerId].OnTriggerPlayerRollback(movePacket.ObjInfo);
-                    break;
-
-                case (ushort)MsgType.MoveMonster:
-                    // 몬스터들 갱신
-                    break;
-
-                case (ushort)MsgType.MoveMissile:
-                    // 미사일들 갱신
                     break;
             }
         }
@@ -200,6 +209,7 @@ namespace Client
                     if (damagePacket.hitId == ClientProgram.Instance.ClientId)
                     {
                         // 본인 체력 감소
+                        PlayerManager.Instance.PlayerObjDic[damagePacket.hitId].UpdateHpbar(damagePacket.curHp);
                     }
                     if (damagePacket.attackId == ClientProgram.Instance.ClientId)
                     {

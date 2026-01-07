@@ -264,6 +264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Canvas: {fileID: 5172592142302648198}
   HPBar: {fileID: 3281652256406177063}
+  MoveSpeed: 2
 --- !u!1 &4163583480491043579
 GameObject:
   m_ObjectHideFlags: 0

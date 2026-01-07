@@ -45,6 +45,7 @@ namespace Server
                 {
                     MonsterManager.Instance.Update(TickDelta);
                     MissileManager.Instance.Update(TickDelta);
+
                     // 점수 업데이트
                     SessionManager.Instance.UpdatePoint();
 

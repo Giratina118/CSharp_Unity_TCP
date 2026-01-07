@@ -1,6 +1,8 @@
 using Client;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MonsterManager : MonoBehaviour
@@ -15,6 +17,11 @@ public class MonsterManager : MonoBehaviour
     private GameObject _monsterParent;          // 몬스터들 저장할 empty
     private bool _onCreateMonster = false;      // 단일 몬스터 생성 트리거
     private bool _onCreateAllMonster = false;   // 모든 몬스터 생성 트리거
+    private bool _onUpdatePos = false;          // 몬스터 정보 업데이트 여부
+    private bool _onDieMonster = false;         // 몬스터 죽었는지 여부
+    private long _dieMonsterId;                 // 죽은 몬스터 id
+    private bool _onRespawnMonster = false;     // 몬스터 리스폰 여부
+    private long _respawnMonsterId;             // 리스폰된 몬스터 id
 
     enum MonsterKey
     {
@@ -37,6 +44,12 @@ public class MonsterManager : MonoBehaviour
     void Start()
     {
         _monsterParent = new GameObject("Monsters");
+    }
+
+    void Update()
+    {
+        UpdatePos();
+        Respawn();
     }
 
     // 이미 생성되어 있던 모든 몬스터 생성(트리거)
@@ -95,6 +108,78 @@ public class MonsterManager : MonoBehaviour
         newMonster.transform.parent = _monsterParent.transform;
 
         // 딕셔너리에 새 캐릭터 추가
-        MonsterObjDic.Add(_newMonsterInfo.Id, newMonster.GetComponent<MonsterController>());
+        MonsterController newController = newMonster.GetComponent<MonsterController>();
+        MonsterObjDic.Add(_newMonsterInfo.Id, newController);
+        newController.Init(_newMonsterInfo);
+    }
+
+    // 위치 업데이트 트리거
+    public void OnTriggerUpdatePos(List<ObjectInfo> infos)
+    {
+        if (_onUpdatePos)
+            return;
+
+        _monsterInfosTemp.Clear();
+        _monsterInfosTemp = infos;
+        _onUpdatePos = true;
+    }
+
+    // 위치 업데이트
+    public void UpdatePos()
+    {
+        if (!_onUpdatePos)
+            return;
+
+        foreach (ObjectInfo info in _monsterInfosTemp)
+        {
+            Debug.Log($"{info.Id} is {MonsterObjDic[info.Id] != null}");
+            if (MonsterObjDic[info.Id] != null)
+            {
+                MonsterObjDic[info.Id].gameObject.transform.LookAt(info.Position - MonsterObjDic[info.Id].gameObject.transform.position);
+            }
+        }
+
+        _onUpdatePos = false;
+    }
+
+    // 몬스터 제거 트리거
+    public void OnTriggerRemoveMonster(long id)
+    {
+        if (MonsterObjDic[id] != null)
+        {
+            _dieMonsterId = id;
+            _onDieMonster = true;
+        }
+    }
+
+    // 몬스터 제거
+    public void RemoveMonster()
+    {
+        if (!_onDieMonster)
+            return;
+
+        MonsterObjDic[_dieMonsterId].gameObject.transform.position = MonsterObjDic[_dieMonsterId].SpawnPos;
+        MonsterObjDic[_dieMonsterId].gameObject.SetActive(false);
+        _onDieMonster = false;
+    }
+
+    // 몬스터 리스폰 트리거
+    public void OnTriggerRespawn(long id)
+    {
+        if (MonsterObjDic[id] != null)
+        {
+            _onRespawnMonster = true;
+            _respawnMonsterId = id;
+        }
+    }
+
+    // 몬스터 리스폰
+    public void Respawn()
+    {
+        if (!_onRespawnMonster)
+            return;
+
+        MonsterObjDic[_respawnMonsterId].gameObject.SetActive(true);
+        _onRespawnMonster = false;
     }
 }

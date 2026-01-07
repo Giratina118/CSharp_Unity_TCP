@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using static Server.CreateAll;
+using static Server.ObjListPacket;
 
 namespace Server
 {
@@ -40,7 +40,7 @@ namespace Server
                     ObjectInfo infoTemp = new ObjectInfo() { objType = (ushort)ObjType.Player, id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
                     playerInfoList.Add(infoTemp);
                 }
-                CreateAll crAllPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllPlayer, Infos = playerInfoList };
+                ObjListPacket crAllPacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllPlayer, Infos = playerInfoList };
                 ArraySegment<byte> crSegment = crAllPacket.Write();
                 session.Send(crSegment);
 
@@ -52,7 +52,7 @@ namespace Server
                     ObjectInfo infoTemp = new ObjectInfo() { objType = sendMonster.Type, id = item, position = sendMonster.Pos, rotation = sendMonster.Rot };
                     monsterInfoList.Add(infoTemp);
                 }
-                CreateAll createAllMonsterPacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllMonster, Infos = monsterInfoList };
+                ObjListPacket createAllMonsterPacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllMonster, Infos = monsterInfoList };
                 ArraySegment<byte> crMonsterSegment = createAllMonsterPacket.Write();
                 session.Send(crMonsterSegment);
 
@@ -65,7 +65,7 @@ namespace Server
                     structureInfoList.Add(infoTemp);
                     Console.WriteLine($"{(ushort)ObjType.Structure},  {item.Type},  {item.Pos}");
                 }
-                CreateAll createAllStructurePacket = new CreateAll() { messageType = (ushort)MsgType.CreateAllStructure, Infos = structureInfoList };
+                ObjListPacket createAllStructurePacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllStructure, Infos = structureInfoList };
                 ArraySegment<byte> crStructureSegment = createAllStructurePacket.Write();
                 Console.WriteLine($"{crStructureSegment.Count}");
                 session.Send(crStructureSegment);
@@ -102,7 +102,7 @@ namespace Server
             {
                 foreach (var session in Sessions.Values)
                 {
-                    Console.WriteLine($"{session.Info.id} -> Server -> All");
+                    //Console.WriteLine($"{session.Info.id} -> Server -> All");
                     session.Send(data);
                 }
             }

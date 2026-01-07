@@ -18,7 +18,6 @@ namespace Server
     // 추가해야할 패킷
     // 점수 패킷
     // 아이템 사용 패킷
-    // 몬스터 이동 패킷을 따로 만들자(서버에서 일괄로 합쳐서 보낼 수 있도록)
 
 
     // 패킷 유형
@@ -27,7 +26,7 @@ namespace Server
         PlayerInfoReq = 1,  // 클라 -> 서버 플레이어 정보 전송
         PlayerInfoOk,       // 서버 -> 클라 정보 받았다고 전달, 플레이어 번호 전달
         CreateRemove,       // 플레이어 오브젝트 생성/삭제, 어떤 플레이어의 오브젝트를 생성/삭제해야 하는지
-        CreateAll,          // 처음 들어왔을 때 먼저 들어와 있던 플레이어들 모두 생성
+        ObjList,            // 오브젝트 리스트 전송
         Move,               // 어떤 플레이어를 어디로 움직여야 하는지
         Chat,               // 어떤 플레이어가 어떤 채팅을 쳤는지
         Damage,             // 유저/몬스터 데미지 전송
@@ -38,22 +37,27 @@ namespace Server
     // 메세지 유형
     enum MsgType
     {
+        // CreateRemovePacket
         CreatePlayer = 1, // 플레이어 오브젝트 생성
         RemovePlayer,     // 플레이어 오브젝트 삭제
-        CreateMonster,    // 몬스터 오브젝트 생성
+        RespawnMonster,   // 몬스터 오브젝트 생성
         RemoveMonster,    // 몬스터 오브젝트 삭제
         CreateMissile,    // 미사일 오브젝트 생성
         RemoveMissile,    // 미사일 오브젝트 삭제
+        DieMe,            // 자신이 죽었다고 알리주기
 
+        // ObjListPacket
         CreateAllPlayer,    // 모든 플레이어 생성(최초 초기화)
         CreateAllMonster,   // 모든 몬스터 생성(최초 초기화)
         CreateAllStructure, // 모든 건물 생성(최초 초기화)
+        MonsterInfoList,    // 모든 몬스터 정보(위치) 전송
 
+        // MovePacket
         MovePlayer,     // 플레이어 이동
-        MoveMonster,    // 몬스터 이동
         MoveMissile,    // 미사일 이동
         RollbackPlayer, // 플레이어 롤백
 
+        // DamagePacket
         DamagePlayer,   // 플레이어 데미지
         DamageMonster,  // 몬스터 데미지
 
@@ -70,7 +74,7 @@ namespace Server
         Max,
     }
 
-    // 플레이어 정보(id, 위치)
+    // 오브젝트 정보(id, 위치)
     public struct ObjectInfo
     {
         public ushort objType; // 어떤 종류의 오브젝트인지
@@ -218,7 +222,7 @@ namespace Server
     // 유저 오브젝트 생성/삭제 관리
     class CreateRemovePacket : Packet
     {
-        public long playerId;      // 어떤 유저를
+        public long id;            // 어떤 대상을
         public ushort messageType; // 생성 혹은 삭제할지
 
         public CreateRemovePacket() { this.PacketType = (ushort)Server.PacketType.CreateRemove; }
@@ -236,7 +240,7 @@ namespace Server
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType); // 패킷 종류
             count += sizeof(ushort); // 패킷 유형
 
-            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerId); // 플레이어 id
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.id); // 플레이어 id
             count += sizeof(long);   // 플레이어 아이디
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType); // 메시지 타입
             count += sizeof(ushort); // 메시지 타입(생성/삭제 여부)
@@ -258,7 +262,7 @@ namespace Server
             count += sizeof(ushort); // 패킷 사이즈
             count += sizeof(ushort); // 패킷 아이디
 
-            this.playerId = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
+            this.id = BitConverter.ToInt64(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(long);   // 플레이어 아이디
             this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 메시지 타입(생성/삭제 여부)
@@ -266,12 +270,12 @@ namespace Server
     }
 
     // 최초 연결 시 기존에 들어와 있던 플레이어 생성
-    class CreateAll : Packet
+    class ObjListPacket : Packet
     {
         public ushort messageType; // 메시지 유형
         public List<ObjectInfo> Infos = new List<ObjectInfo>();
 
-        public CreateAll() { this.PacketType = (ushort)Server.PacketType.CreateAll; }
+        public ObjListPacket() { this.PacketType = (ushort)Server.PacketType.ObjList; }
 
         public override ArraySegment<byte> Write()
         {
@@ -329,7 +333,7 @@ namespace Server
     class MovePacket : Packet
     {
         public ushort messageType;
-        public ObjectInfo playerInfo; // 플레이어 아이디, 위치, 회전 정보
+        public ObjectInfo objInfo; // 플레이어 아이디, 위치, 회전 정보
 
         public MovePacket() { this.PacketType = (ushort)Server.PacketType.Move; }
 
@@ -348,7 +352,7 @@ namespace Server
             success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.messageType);
             count += sizeof(ushort); // 메시지 타입(어느 오브젝트가 이동하는지)
 
-            playerInfo.Write(span, ref count);
+            objInfo.Write(span, ref count);
 
             success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
 
@@ -370,7 +374,7 @@ namespace Server
             this.messageType = BitConverter.ToUInt16(span.Slice(count, span.Length - count)); // Slice는 실질적으로 Span에 변화를 주지 않음
             count += sizeof(ushort); // 메시지 타입
 
-            playerInfo.Read(span, ref count);
+            objInfo.Read(span, ref count);
         }
     }
 
