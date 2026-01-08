@@ -12,14 +12,14 @@ namespace Server
 
         object _lock = new object();
         public Dictionary<long, ClientSession> Sessions = new Dictionary<long, ClientSession>(); // key: 클라이언트 id, value: 클라이언트 세션, 연결된 클라이언트 관리
-        int _sessionId = 0; // 클라이언트 id가 1씩 늘어나며 새로 연결한 클라이언트에게 id를 붙여줌)
+        //int _sessionId = 0; // 클라이언트 id가 1씩 늘어나며 새로 연결한 클라이언트에게 id를 붙여줌)
 
         // 새 세션 등록
         public void Add(ClientSession session)
         {
             lock (_lock)
             {
-                session.Info.id = _sessionId++;
+                //session.Info.id = _sessionId++;
                 Sessions.Add(session.Info.id, session); // id 지정하고 딕셔너리에 추가
 
                 // 연결 완료 신호 보냄
@@ -29,7 +29,7 @@ namespace Server
                 if (segment != null)
                     session.Send(segment);
 
-                
+
                 // 먼저 접속해 있던 플레이어의 오브젝트들 생성하라고 전송
                 List<ObjectInfo> playerInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
                 foreach (ClientSession item in Sessions.Values)
@@ -43,6 +43,7 @@ namespace Server
                 ObjListPacket crAllPacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllPlayer, Infos = playerInfoList };
                 ArraySegment<byte> crSegment = crAllPacket.Write();
                 session.Send(crSegment);
+
 
                 // 먼저 생성되어 있던 모든 몬스터 생성하라고 전송
                 List<ObjectInfo> monsterInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)

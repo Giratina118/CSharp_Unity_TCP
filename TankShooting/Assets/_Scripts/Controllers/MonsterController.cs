@@ -10,14 +10,15 @@ public class MonsterController : MonoBehaviour
     public GameObject Canvas;
     public Image HPBar;
     public Vector3 SpawnPos;
+    public Vector3 targetPos;
 
     private GameObject _player = null;
     private bool _isHit = false;
-    private int _damage;
     private int _curHP;
     private int _maxHP;
     private float _speed;
-    private float _hpBarVisibleDistance = 20.0f; // hp바 가시거리
+    private float _hpBarVisibleDistance = 30.0f; // hp바 가시거리
+    private bool _onMove = false;
 
     enum MonsterKey
     {
@@ -34,13 +35,17 @@ public class MonsterController : MonoBehaviour
 
     void Update()
     {
-        if (_player != null && Canvas.gameObject.activeSelf)
+        if (_player != null)
         {
-            if (Vector3.Distance(_player.transform.position, gameObject.transform.position) > _hpBarVisibleDistance)
+            // 거리에 따라 hp바 on/off
+            if (Canvas.gameObject.activeSelf  && Vector3.Distance(_player.transform.position, gameObject.transform.position) > _hpBarVisibleDistance)
                 Canvas.gameObject.SetActive(false);
+            if (!Canvas.gameObject.activeSelf && Vector3.Distance(_player.transform.position, gameObject.transform.position) < _hpBarVisibleDistance)
+                Canvas.gameObject.SetActive(true);
+
+            if (Canvas.gameObject.activeSelf)
+                Canvas.gameObject.transform.LookAt(_player.transform.position);
         }
-        if (!Canvas.gameObject.activeSelf && Vector3.Distance(_player.transform.position, gameObject.transform.position) < _hpBarVisibleDistance)
-            Canvas.gameObject.SetActive(true);
 
         Hit();
         Move();
@@ -50,15 +55,11 @@ public class MonsterController : MonoBehaviour
     {
         switch (info.ObjType)
         {
-            case (ushort)MonsterKey.Ray:
-                _speed = 1.5f;
-                break;
-
-            case (ushort)MonsterKey.Bee:
-                _speed = 2.0f;
-                break;
+            case (ushort)MonsterKey.Ray:  _speed = 1.5f;  break;
+            case (ushort)MonsterKey.Bee:  _speed = 2.0f;  break;
         }
-        SpawnPos = info.Position;
+        targetPos = SpawnPos = info.Position;
+        _speed /= 2.0f;
     }
 
     IEnumerator ConnectWithPlayer()
@@ -70,7 +71,6 @@ public class MonsterController : MonoBehaviour
     public void OnTriggerHit(int damage, int curHP, int maxHP)
     {
         _isHit = true;
-        _damage = damage;
         _curHP = curHP;
         _maxHP = maxHP;
     }
@@ -87,6 +87,19 @@ public class MonsterController : MonoBehaviour
 
     public void Move()
     {
+        if (!_onMove)
+            return;
+
+        if (Vector3.Distance(transform.position, targetPos) < 0.01f)
+            return;
+
         transform.Translate(Vector3.forward * _speed * Time.deltaTime);
+    }
+
+    public void SetTargetPos(Vector3 pos)
+    {
+        transform.LookAt(pos);
+        targetPos = pos;
+        _onMove = true;
     }
 }

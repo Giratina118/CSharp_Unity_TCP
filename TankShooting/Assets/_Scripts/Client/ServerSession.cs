@@ -44,13 +44,14 @@ namespace Client
             count += sizeof(ushort);
             ushort packetType = BitConverter.ToUInt16(buffer.Array, buffer.Offset + count);
 
+            Debug.Log((PacketType)packetType);
             // 패킷 유형에 맞는 코드 실행
             switch ((PacketType)packetType)
             {
                 case PacketType.PlayerInfoReq: OnRecvPlayerInfoReq(buffer); break;
                 case PacketType.PlayerInfoOk:  OnRecvPlayerInfoOk(buffer);  break;
                 case PacketType.CreateRemove:  OnRecvCreateRemove(buffer);  break;
-                case PacketType.ObjList:       OnRecvObjectList(buffer);     break;
+                case PacketType.ObjList:       OnRecvObjectList(buffer);    break;
                 case PacketType.Move:          OnRecvMove(buffer);          break;
                 case PacketType.Chat:          OnRecvChat(buffer);          break;
                 case PacketType.Damage:        OnRecvDamage(buffer);        break;
@@ -67,7 +68,7 @@ namespace Client
             Debug.Log($"InfoReq | ID : {playerInfo.PlayerId}, name : {playerInfo.Name}\n");
 
             // 서버에 이름(닉네임) 전송
-            PlayerInfoReq packet = new PlayerInfoReq() { PlayerId = 0, Name = ClientProgram.Instance.NickName };
+            PlayerInfoReq packet = new PlayerInfoReq() { PlayerId = ClientProgram.Instance.ClientId, Name = ClientProgram.Instance.NickName };
             ArraySegment<byte> segment = packet.Write(); // 직렬화
 
             if (segment != null)

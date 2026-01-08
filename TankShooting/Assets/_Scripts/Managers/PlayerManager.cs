@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -23,19 +24,14 @@ public class PlayerManager : MonoBehaviour
 
     void Awake()
     {
-        /*
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        */
         Instance = this;
     }
 
     void Start()
     {
         _playerParent = new GameObject("Players");
+        //Button disconnectButton = GameObject.Find("DisconnectServerButton").GetComponent<Button>();
+        //disconnectButton.onClick.AddListener(ClientProgram.Instance.OnClickDisconnectButton);
     }
 
     // 이미 서버에 들어와있던 모든 플레이어 생성(트리거)

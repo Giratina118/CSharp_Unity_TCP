@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = System.Random;
 
@@ -28,6 +29,7 @@ namespace Client
         public long ClientId;   // 본인 id
         public string NickName; // 이름
 
+        private Button _disconnectButton;
         private bool _isConnect = false; // 서버 연결 여부
         private string  _host;
         private IPHostEntry _ipHost;
@@ -45,6 +47,7 @@ namespace Client
             }
 
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
 
         void Start()
@@ -57,6 +60,9 @@ namespace Client
 
         private void Update()
         {
+            if (SceneManager.GetActiveScene().buildIndex != 1)
+                return;
+
             try
             {
                 StructureManager.Instance.CreateStructureAll(); // 건물 생성
@@ -78,13 +84,14 @@ namespace Client
         }
 
         // 서버 연결 버튼 클릭
-        public void OnClickConnectButton()
+        public void OnConnectServer(long id, string name)
         {
             if (_isConnect)
                 return;
 
             Debug.Log(_host);
 
+            /*
             // 닉네임 저장
             if (NameInputField.text == "")
             {
@@ -96,11 +103,18 @@ namespace Client
                 NickName = NameInputField.text;
 
             NameInputField.interactable = false;
+            */
+
+            NickName = name;
+            ClientId = id;
 
             // 커넥터 생성
             Connector = new Connector();
             Connector.Connect(_endPoint, () => { return new ServerSession(); });
             _isConnect = true;
+
+            // = GameObject.Find("DisconnectServerButton").GetComponent<Button>();
+            //_disconnectButton.onClick.AddListener(OnClickDisconnectButton);
         }
 
         // 서버 연결 해제 버튼 클릭

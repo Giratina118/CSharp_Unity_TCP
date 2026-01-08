@@ -31,13 +31,6 @@ public class MonsterManager : MonoBehaviour
 
     void Awake()
     {
-        /*
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        */
         Instance = this;
     }
 
@@ -135,7 +128,7 @@ public class MonsterManager : MonoBehaviour
             Debug.Log($"{info.Id} is {MonsterObjDic[info.Id] != null}");
             if (MonsterObjDic[info.Id] != null)
             {
-                MonsterObjDic[info.Id].gameObject.transform.LookAt(info.Position - MonsterObjDic[info.Id].gameObject.transform.position);
+                MonsterObjDic[info.Id].SetTargetPos(info.Position);
             }
         }
 

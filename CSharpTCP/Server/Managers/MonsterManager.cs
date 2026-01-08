@@ -27,10 +27,10 @@ namespace Server
         private Vector3 _spawnPos;
         private Vector3 _targetPos;
         private Vector3 _moveDir;
-        private float _moveInterval = 2.0f; // 리스폰 간격
-        private float _moveTimer = 0.0f; // 리스폰 타이머
+        private float _moveInterval = 3.0f;     // 이동 변경 간격
+        private float _moveTimer = 0.0f;        // 이동 변경 타이머
         private float _respawnInterval = 20.0f; // 리스폰 간격
-        private float _respawnTimer = 0.0f; // 리스폰 타이머
+        private float _respawnTimer = 0.0f;     // 리스폰 타이머
 
         public Monster()
         {
@@ -47,7 +47,7 @@ namespace Server
             Type = (ushort)spawnData.Type;
             MonsterData monsterData = MonsterManager.Instance.MonsterDataDic[spawnData.Type];
             MaxHP = CurHP = (ushort)monsterData.Hp;
-            Speed = monsterData.Speed;
+            Speed = monsterData.Speed / 2.0f;
             Damage = (ushort)monsterData.Damage;
             Point = (ushort)monsterData.Point;
             Pos = new Vector3(spawnData.xPos, spawnData.yPos, spawnData.zPos);

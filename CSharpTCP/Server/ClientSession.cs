@@ -112,6 +112,7 @@ namespace Server
 
             Console.WriteLine($"InfoReq | ID : {playerInfo.playerId}, name : {playerInfo.name}\n");
 
+            Info.id = playerInfo.playerId;
             Name = playerInfo.name;
             SessionManager.Instance.Add(this); // 딕셔너리에 클라이언트 추가
         }
