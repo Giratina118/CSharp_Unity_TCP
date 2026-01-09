@@ -91,11 +91,7 @@ public class TitleManager : MonoBehaviour
             switch (requestType)
             {
                 case (int)RequestType.Login:
-                    // 로그인 성공이면 메인씬으로
-                    SceneManager.LoadScene(1);
-
-                    yield return new WaitForSecondsRealtime(0.5f);
-
+                    // 로그인 성공이면 서버 연결, 메인씬으로
                     ClientProgram.Instance.OnConnectServer(loginDTO.id, loginDTO.name);
 
                     break;

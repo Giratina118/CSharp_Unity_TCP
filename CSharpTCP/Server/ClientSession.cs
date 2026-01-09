@@ -18,7 +18,7 @@ namespace Server
         public string Name = ""; // 이름
         public ushort CurHP = 100;
         public ushort MaxHP = 100;
-        public float CollisionRadius = 1.2f;
+        public float CollisionRadius = 1.5f;
         public ObjectInfo Info = new ObjectInfo();
         public int Point = 0;
 
@@ -39,9 +39,8 @@ namespace Server
 
                 ArraySegment<byte> playerSegment = crPacket.Write();
                 Send(playerSegment);
-                if (crPacket != null)
-                    SessionManager.Instance.BroadcastAll(playerSegment);
-                //Die();
+                //if (crPacket != null)
+                //    SessionManager.Instance.BroadcastAll(playerSegment);
             }
             else
                 CurHP -= dmg;

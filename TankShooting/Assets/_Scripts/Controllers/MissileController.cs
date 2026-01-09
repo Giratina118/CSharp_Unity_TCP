@@ -15,4 +15,12 @@ public class MissileController : MonoBehaviour
     {
         transform.Translate(Vector3.forward * _speed * Time.deltaTime);
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if ((other.CompareTag("Player") && other.GetComponent<PlayerController>().IsMine))
+            return;
+
+        Destroy(this.gameObject);
+    }
 }

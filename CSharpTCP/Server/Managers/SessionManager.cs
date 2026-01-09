@@ -17,6 +17,7 @@ namespace Server
         // 새 세션 등록
         public void Add(ClientSession session)
         {
+            Console.WriteLine("add");
             lock (_lock)
             {
                 //session.Info.id = _sessionId++;

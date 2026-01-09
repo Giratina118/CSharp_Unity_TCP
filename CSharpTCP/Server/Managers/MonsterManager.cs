@@ -29,8 +29,9 @@ namespace Server
         private Vector3 _moveDir;
         private float _moveInterval = 3.0f;     // 이동 변경 간격
         private float _moveTimer = 0.0f;        // 이동 변경 타이머
-        private float _respawnInterval = 20.0f; // 리스폰 간격
+        private float _respawnInterval = 5.0f; // 리스폰 간격
         private float _respawnTimer = 0.0f;     // 리스폰 타이머
+        private float _moveRange = 20.0f;       // 이동 반경
 
         public Monster()
         {
@@ -47,7 +48,7 @@ namespace Server
             Type = (ushort)spawnData.Type;
             MonsterData monsterData = MonsterManager.Instance.MonsterDataDic[spawnData.Type];
             MaxHP = CurHP = (ushort)monsterData.Hp;
-            Speed = monsterData.Speed / 2.0f;
+            Speed = monsterData.Speed;
             Damage = (ushort)monsterData.Damage;
             Point = (ushort)monsterData.Point;
             Pos = new Vector3(spawnData.xPos, spawnData.yPos, spawnData.zPos);
@@ -62,21 +63,27 @@ namespace Server
         {
             if (IsDie)
             {
-                _respawnTimer += deltaTime;
-                if (_respawnTimer > _respawnInterval)
-                {
-                    _respawnTimer = 0.0f;
-                    IsDie = false;
-
-                    // TODO: 모든 클라에게 리스폰 전송
-                    CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RespawnMonster, id = Id };
-                    ArraySegment<byte> monsterSegment = monsterPacket.Write();
-                    SessionManager.Instance.BroadcastAll(monsterSegment);
-                }
+                Respawn(deltaTime);
             }
             else
             {
                 Move(deltaTime);
+            }
+        }
+
+        // 리스폰
+        public void Respawn(float deltaTime)
+        {
+            _respawnTimer += deltaTime;
+            if (_respawnTimer > _respawnInterval)
+            {
+                _respawnTimer = 0.0f;
+                IsDie = false;
+
+                // TODO: 모든 클라에게 리스폰 전송
+                CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RespawnMonster, id = Id };
+                ArraySegment<byte> monsterSegment = monsterPacket.Write();
+                SessionManager.Instance.BroadcastAll(monsterSegment);
             }
         }
 
@@ -89,15 +96,15 @@ namespace Server
                 _moveTimer = 0.0f;
 
                 Random rand = new Random();
-                float x = _spawnPos.X + rand.NextSingle() * 4.0f - 2.0f;
-                float z = _spawnPos.Z + rand.NextSingle() * 4.0f - 2.0f;
+                float x = _spawnPos.X + rand.NextSingle() * _moveRange - _moveRange * 0.5f;
+                float z = _spawnPos.Z + rand.NextSingle() * _moveRange - _moveRange * 0.5f;
 
                 _targetPos = new Vector3(x, Pos.Y, z);
             }
 
             float distance = Vector3.Distance(Pos, _targetPos);
 
-            // 3. 목적지에 아주 가깝지 않을 때만 이동 (오차 범위 0.1f)
+            // 목적지에 아주 가깝지 않을 때만 이동
             if (distance > 0.1f)
             {
                 _moveDir = Vector3.Normalize(_targetPos - Pos);
@@ -131,6 +138,7 @@ namespace Server
         {
             IsDie = true;
             Pos = _targetPos = _spawnPos;
+            CurHP = MaxHP;
             // 모든 클라에게 소멸 전송
             CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RemoveMonster, id = Id };
             ArraySegment<byte> monsterSegment = monsterPacket.Write();

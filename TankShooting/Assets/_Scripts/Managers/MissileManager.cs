@@ -71,6 +71,5 @@ public class MissileManager : MonoBehaviour
             return;
 
         Destroy(gameObject);
-
     }
 }

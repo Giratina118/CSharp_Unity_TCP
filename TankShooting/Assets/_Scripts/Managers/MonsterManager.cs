@@ -43,6 +43,7 @@ public class MonsterManager : MonoBehaviour
     {
         UpdatePos();
         Respawn();
+        RemoveMonster();
     }
 
     // 이미 생성되어 있던 모든 몬스터 생성(트리거)
@@ -113,7 +114,8 @@ public class MonsterManager : MonoBehaviour
             return;
 
         _monsterInfosTemp.Clear();
-        _monsterInfosTemp = infos;
+        foreach (var info in infos)
+            _monsterInfosTemp.Add(info);
         _onUpdatePos = true;
     }
 
@@ -151,8 +153,7 @@ public class MonsterManager : MonoBehaviour
         if (!_onDieMonster)
             return;
 
-        MonsterObjDic[_dieMonsterId].gameObject.transform.position = MonsterObjDic[_dieMonsterId].SpawnPos;
-        MonsterObjDic[_dieMonsterId].gameObject.SetActive(false);
+        MonsterObjDic[_dieMonsterId].Die();
         _onDieMonster = false;
     }
 

@@ -32,7 +32,7 @@ namespace Client
         // CreateRemovePacket
         CreatePlayer = 1, // 플레이어 오브젝트 생성
         RemovePlayer,     // 플레이어 오브젝트 삭제
-        RespawnMonster,    // 몬스터 오브젝트 생성
+        RespawnMonster,   // 몬스터 오브젝트 생성
         RemoveMonster,    // 몬스터 오브젝트 삭제
         CreateMissile,    // 미사일 오브젝트 생성
         RemoveMissile,    // 미사일 오브젝트 삭제
@@ -70,7 +70,7 @@ namespace Client
     public struct ObjectInfo
     {
         public ushort ObjType;
-        public long Id; // id
+        public long Id;          // id
         public Vector3 Position; // 위치 정보
         public Vector3 Rotation; // 회전 정보
 

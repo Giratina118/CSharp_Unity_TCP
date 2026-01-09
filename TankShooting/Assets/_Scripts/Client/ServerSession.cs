@@ -121,10 +121,15 @@ namespace Client
                     // 몬스터 끄기
                     MonsterManager.Instance.OnTriggerRemoveMonster(crPacket.id);
                     break;
+
+                case (ushort)MsgType.DieMe:
+                    // 본인이 죽었다면
+                    ClientProgram.Instance.GameOver();
+                    break;
             }
         }
 
-        // CreateAll 패킷 받음
+        // ObjectList 패킷 받음
         public void OnRecvObjectList(ArraySegment<byte> buffer)
         {
             ObjListPacket objListPacket = new ObjListPacket();
@@ -152,11 +157,6 @@ namespace Client
                     // 몬스터 위치 업데이트
                     Debug.Log("recv monster info");
                     MonsterManager.Instance.OnTriggerUpdatePos(objListPacket.ObjInfos);
-                    break;
-
-                case (ushort)MsgType.DieMe:
-                    // 본인이 죽었다면
-                    ClientProgram.Instance.OnClickDisconnectButton();
                     break;
             }
         }
@@ -210,7 +210,7 @@ namespace Client
                     if (damagePacket.hitId == ClientProgram.Instance.ClientId)
                     {
                         // 본인 체력 감소
-                        PlayerManager.Instance.PlayerObjDic[damagePacket.hitId].UpdateHpbar(damagePacket.curHp);
+                        PlayerManager.Instance.PlayerObjDic[damagePacket.hitId].OnTriggerUpdateHpbar(damagePacket.curHp);
                     }
                     if (damagePacket.attackId == ClientProgram.Instance.ClientId)
                     {

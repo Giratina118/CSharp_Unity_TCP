@@ -91,6 +91,7 @@ namespace ServerCore
         {
             lock (_lock)
             {
+                UnityEngine.Debug.Log("Send");
                 _sendQueue.Enqueue(sendBuff); // Enqueue로 전송할 데이터 넣기
                 if (_pendinglist.Count == 0)
                 {

@@ -30,14 +30,18 @@ public class PlayerController : MonoBehaviour
     private float _updateInterval = 0.25f; // 위치 업데이트 주기
     private float _updateTimer = 0.0f;     // 위치 업데이트 타이머
 
+    [SerializeField]
     private Image _hpBar;
     private int _maxHp = 100;
+    private int _curHp = 100;
+    private bool _onUpdateHpBar = false;
 
 
     void Update()
     {
         UpdateOtherPos(); // 위치 업데이트 (본인 외의 오브젝트)
         Movement();       // 이동 (본인 오브젝트)
+        UpdateHpbar();    // 체력 업데이트 (본인)
 
         // 휠 입력받아 캐논 부분 바꾸기
         float scrollWheel = Input.GetAxis("Mouse ScrollWheel");
@@ -200,9 +204,21 @@ public class PlayerController : MonoBehaviour
         WheelObjects[3].Rotate(new Vector3(wheelRotateR, 0, 0) * Time.deltaTime);
     }
 
-    // hp바 업데이트
-    public void UpdateHpbar(int curHp)
+    // hp바 업데이트 트리거
+    public void OnTriggerUpdateHpbar(int curHp)
     {
-        _hpBar.fillAmount = (float)curHp / _maxHp; ;
+        _curHp = curHp;
+        _onUpdateHpBar = true;
+    }
+
+    // hp바 업데이트
+    public void UpdateHpbar()
+    {
+        if (!_onUpdateHpBar)
+            return;
+
+        _onUpdateHpBar = false;
+        Debug.Log($"{_curHp} / {_maxHp}");
+        _hpBar.fillAmount = (float)_curHp / _maxHp; ;
     }
 }

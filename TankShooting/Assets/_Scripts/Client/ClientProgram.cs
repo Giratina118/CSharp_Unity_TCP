@@ -30,7 +30,9 @@ namespace Client
         public string NickName; // 이름
 
         private Button _disconnectButton;
-        private bool _isConnect = false; // 서버 연결 여부
+        private bool _isConnect = false;  // 서버 연결 여부
+        private bool _isGameOver = false; // 게임 오버 여부
+
         private string  _host;
         private IPHostEntry _ipHost;
         private IPAddress _ipAddr;
@@ -66,16 +68,17 @@ namespace Client
             try
             {
                 StructureManager.Instance.CreateStructureAll(); // 건물 생성
-                MonsterManager.Instance.CreateMonsterAll();  // 모든 몬스터 생성
-                PlayerManager.Instance.CreateCharacterAll(); // 다른 플레이어 캐릭터 생성
-                PlayerManager.Instance.CreateCharacter();    // 본인 캐릭터 생성
-                MissileManager.Instance.CreateMissile();     // 미사일 생성
-                ChatManager.Instance.UpdateChatting();       // 채팅 업데이트
+                MonsterManager.Instance.CreateMonsterAll();     // 모든 몬스터 생성
+                PlayerManager.Instance.CreateCharacterAll();    // 다른 플레이어 캐릭터 생성
+                PlayerManager.Instance.CreateCharacter();       // 본인 캐릭터 생성
+                MissileManager.Instance.CreateMissile();        // 미사일 생성
+                ChatManager.Instance.UpdateChatting();          // 채팅 업데이트
 
                 if (Input.GetKeyDown(KeyCode.Return))
-                    ChatManager.Instance.SendChatting();     // 문자 보내기
+                    ChatManager.Instance.SendChatting();        // 문자 보내기
 
-                PlayerManager.Instance.RemoveExitCharacter();// 나간 플레이어 제거
+                PlayerManager.Instance.RemoveExitCharacter();   // 나간 플레이어 제거
+                OnClickDisconnectButton();                      // 게임 오버 체크
             }
             catch (Exception e)
             {
@@ -83,11 +86,10 @@ namespace Client
             }
         }
 
-        // 서버 연결 버튼 클릭
+        // 서버 연결
         public void OnConnectServer(long id, string name)
         {
-            if (_isConnect)
-                return;
+            SceneManager.LoadSceneAsync(1);
 
             Debug.Log(_host);
 
@@ -117,20 +119,25 @@ namespace Client
             //_disconnectButton.onClick.AddListener(OnClickDisconnectButton);
         }
 
-        // 서버 연결 해제 버튼 클릭
+        // 서버 연결 해제
         public void OnClickDisconnectButton()
         {
-            if (Connector != null && Connector.CurrentSession != null)
+            if (_isGameOver && Connector != null && Connector.CurrentSession != null)
             {
+                _isGameOver = false;
+
                 // 서버에 연결 해제 요청
                 Camera camera = Camera.main;
                 camera.transform.parent = transform.root;
-                NameInputField.text = "";
-                NameInputField.interactable = true;
 
                 Connector.CurrentSession.Disconnect();
                 _isConnect = false;
             }
+        }
+
+        public void GameOver()
+        {
+            _isGameOver = true;
         }
     }
 }

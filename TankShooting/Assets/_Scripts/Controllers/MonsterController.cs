@@ -59,7 +59,6 @@ public class MonsterController : MonoBehaviour
             case (ushort)MonsterKey.Bee:  _speed = 2.0f;  break;
         }
         targetPos = SpawnPos = info.Position;
-        _speed /= 2.0f;
     }
 
     IEnumerator ConnectWithPlayer()
@@ -71,7 +70,8 @@ public class MonsterController : MonoBehaviour
     public void OnTriggerHit(int damage, int curHP, int maxHP)
     {
         _isHit = true;
-        _curHP = curHP;
+
+        _curHP = curHP - damage;
         _maxHP = maxHP;
     }
 
@@ -101,5 +101,13 @@ public class MonsterController : MonoBehaviour
         transform.LookAt(pos);
         targetPos = pos;
         _onMove = true;
+    }
+
+    public void Die()
+    {
+        _curHP = _maxHP;
+        HPBar.fillAmount = 1.0f;
+        transform.position = SpawnPos;
+        gameObject.SetActive(false);
     }
 }
