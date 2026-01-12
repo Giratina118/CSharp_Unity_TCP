@@ -3954,7 +3954,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5eab839f7c01064f91771da051b2a80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NameInputField: {fileID: 0}
   ClientId: 0
   NickName: 
 --- !u!1 &1540588118

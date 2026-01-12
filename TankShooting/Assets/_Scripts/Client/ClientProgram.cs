@@ -25,11 +25,9 @@ namespace Client
         public static ClientProgram Instance { get; private set; }
 
         public Connector Connector;
-        public TMP_InputField NameInputField; // 닉네임 입력
         public long ClientId;   // 본인 id
         public string NickName; // 이름
 
-        private Button _disconnectButton;
         private bool _isConnect = false;  // 서버 연결 여부
         private bool _isGameOver = false; // 게임 오버 여부
 
@@ -78,7 +76,7 @@ namespace Client
                     ChatManager.Instance.SendChatting();        // 문자 보내기
 
                 PlayerManager.Instance.RemoveExitCharacter();   // 나간 플레이어 제거
-                OnClickDisconnectButton();                      // 게임 오버 체크
+                OnDisconnectServer();                      // 게임 오버 체크
             }
             catch (Exception e)
             {
@@ -93,34 +91,20 @@ namespace Client
 
             Debug.Log(_host);
 
-            /*
-            // 닉네임 저장
-            if (NameInputField.text == "")
-            {
-                Random rand = new Random();
-                NickName = "Guest" + rand.Next(1000);
-                NameInputField.text = NickName;
-            }
-            else
-                NickName = NameInputField.text;
-
-            NameInputField.interactable = false;
-            */
-
             NickName = name;
             ClientId = id;
+
+            GameObject.Find("DisconnectServerButton").GetComponent<Button>().onClick.AddListener(OnDisconnectServer);
+            GameObject.Find("NameText").GetComponent<TMP_Text>().text = "name: " + NickName;
 
             // 커넥터 생성
             Connector = new Connector();
             Connector.Connect(_endPoint, () => { return new ServerSession(); });
             _isConnect = true;
-
-            // = GameObject.Find("DisconnectServerButton").GetComponent<Button>();
-            //_disconnectButton.onClick.AddListener(OnClickDisconnectButton);
         }
 
         // 서버 연결 해제
-        public void OnClickDisconnectButton()
+        public void OnDisconnectServer()
         {
             if (_isGameOver && Connector != null && Connector.CurrentSession != null)
             {
@@ -132,6 +116,9 @@ namespace Client
 
                 Connector.CurrentSession.Disconnect();
                 _isConnect = false;
+
+                // 점수창
+
             }
         }
 

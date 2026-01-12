@@ -12,6 +12,7 @@ public class PlayerManager : MonoBehaviour
 
     public Dictionary<long, PlayerController> PlayerObjDic = new Dictionary<long, PlayerController>(); // 클라(플레이어) 번호, 오브젝트
     public GameObject PlayerPrefabs;         // 플레이어 오브젝트 프리팹
+    public GameObject DmamgedImage;          // 데미지 받았을 때 빨간 배경
 
     private List<ObjectInfo> _infosTemp;     // 모든 캐릭터 생성 시 정보 받아서 저장
     private ObjectInfo _newPlayerInfo;       // 새로 생성하는 캐릭터 정보
@@ -20,6 +21,8 @@ public class PlayerManager : MonoBehaviour
     private bool _onCreateAllPlayer = false; // 모든 캐릭터 생성 트리거
     private bool _isMine = false;            // 지금 만드는 캐릭터가 내 캐릭터인지
     private long _exitId = -1;               // 나가는 플레이어 아이디(-1일 경우 나가는 플레이어X)
+    private bool _isHit = false;
+    
     object _lock = new object();
 
     void Awake()
@@ -32,6 +35,12 @@ public class PlayerManager : MonoBehaviour
         _playerParent = new GameObject("Players");
         //Button disconnectButton = GameObject.Find("DisconnectServerButton").GetComponent<Button>();
         //disconnectButton.onClick.AddListener(ClientProgram.Instance.OnClickDisconnectButton);
+    }
+
+    private void Update()
+    {
+        if (_isHit)
+            StartCoroutine(FlickerRedScreen());
     }
 
     // 이미 서버에 들어와있던 모든 플레이어 생성(트리거)
@@ -121,5 +130,25 @@ public class PlayerManager : MonoBehaviour
         foreach (var player in PlayerObjDic)
             Destroy(player.Value.gameObject);
         PlayerObjDic.Clear();
+    }
+
+    public void OnTriggerDamaged()
+    {
+        _isHit = true;
+    }
+
+    IEnumerator FlickerRedScreen()
+    {
+        DmamgedImage.SetActive(true);
+        yield return new WaitForSecondsRealtime(0.3f);
+        DmamgedImage.SetActive(false);
+        yield return new WaitForSecondsRealtime(0.2f);
+        DmamgedImage.SetActive(true);
+        yield return new WaitForSecondsRealtime(0.3f);
+        DmamgedImage.SetActive(false);
+        yield return new WaitForSecondsRealtime(0.2f);
+        DmamgedImage.SetActive(true);
+        yield return new WaitForSecondsRealtime(0.3f);
+        DmamgedImage.SetActive(false);
     }
 }

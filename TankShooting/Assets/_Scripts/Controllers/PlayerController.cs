@@ -207,7 +207,7 @@ public class PlayerController : MonoBehaviour
     // hp바 업데이트 트리거
     public void OnTriggerUpdateHpbar(int curHp)
     {
-        _curHp = curHp;
+        _curHp = Mathf.Clamp(curHp, 0, _maxHp);
         _onUpdateHpBar = true;
     }
 

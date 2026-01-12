@@ -207,10 +207,13 @@ namespace Client
             {
                 case (ushort)MsgType.DamagePlayer:
                     // 체력 감소, 공격자가 본인이면 데미지 표시 띄우기, 피해자가 본인이면 빨간 이펙트 띄우기
+                    PlayerController hitPlayer;
                     if (damagePacket.hitId == ClientProgram.Instance.ClientId)
                     {
                         // 본인 체력 감소
-                        PlayerManager.Instance.PlayerObjDic[damagePacket.hitId].OnTriggerUpdateHpbar(damagePacket.curHp);
+                        hitPlayer = PlayerManager.Instance.PlayerObjDic[damagePacket.hitId];
+                        hitPlayer.OnTriggerUpdateHpbar((int)damagePacket.curHp - (int)damagePacket.damage);
+                        PlayerManager.Instance.OnTriggerDamaged();
                     }
                     if (damagePacket.attackId == ClientProgram.Instance.ClientId)
                     {
