@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class MissileController : MonoBehaviour
 {
+    public GameObject ExplosionPrefab;
+
     private float _speed = 15.0f;
 
     private void Start()
@@ -21,6 +23,10 @@ public class MissileController : MonoBehaviour
         if ((other.CompareTag("Player") && other.GetComponent<PlayerController>().IsMine))
             return;
 
+        GameObject newParticle = Instantiate(ExplosionPrefab, this.transform.position, Quaternion.identity);
+        newParticle.transform.SetParent(this.transform.parent);
+        Destroy(newParticle, 5.0f);
+        //newParticle.GetComponent<ParticleSystem>().Play();
         Destroy(this.gameObject);
     }
 }

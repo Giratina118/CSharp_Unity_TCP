@@ -23,6 +23,8 @@ public class MonsterManager : MonoBehaviour
     private bool _onRespawnMonster = false;     // 몬스터 리스폰 여부
     private long _respawnMonsterId;             // 리스폰된 몬스터 id
 
+    object _lock = new object();
+
     enum MonsterKey
     {
         Ray = 1001,
@@ -125,16 +127,17 @@ public class MonsterManager : MonoBehaviour
         if (!_onUpdatePos)
             return;
 
-        foreach (ObjectInfo info in _monsterInfosTemp)
+        lock (_lock)
         {
-            Debug.Log($"{info.Id} is {MonsterObjDic[info.Id] != null}");
-            if (MonsterObjDic[info.Id] != null)
+            foreach (ObjectInfo info in _monsterInfosTemp)
             {
-                MonsterObjDic[info.Id].SetTargetPos(info.Position);
+                Debug.Log($"{info.Id} is {MonsterObjDic[info.Id] != null}");
+                if (MonsterObjDic[info.Id] != null)
+                    MonsterObjDic[info.Id].SetTargetPos(info.Position);
             }
-        }
 
-        _onUpdatePos = false;
+            _onUpdatePos = false;
+        }
     }
 
     // 몬스터 제거 트리거

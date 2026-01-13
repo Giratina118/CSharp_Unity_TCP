@@ -55,6 +55,7 @@ namespace Client
                 case PacketType.Move:          OnRecvMove(buffer);          break;
                 case PacketType.Chat:          OnRecvChat(buffer);          break;
                 case PacketType.Damage:        OnRecvDamage(buffer);        break;
+                case PacketType.Score:         OnRecvScore(buffer);         break;
             }
         }
 
@@ -213,7 +214,7 @@ namespace Client
                         // 본인 체력 감소
                         hitPlayer = PlayerManager.Instance.PlayerObjDic[damagePacket.hitId];
                         hitPlayer.OnTriggerUpdateHpbar((int)damagePacket.curHp - (int)damagePacket.damage);
-                        PlayerManager.Instance.OnTriggerDamaged();
+                        UIManager.Instance.OnTriggerDamaged();
                     }
                     if (damagePacket.attackId == ClientProgram.Instance.ClientId)
                     {
@@ -232,5 +233,15 @@ namespace Client
                     break;
             }
         }
+
+        public void OnRecvScore(ArraySegment<byte> buffer)
+        {
+            ScorePacket scorePacket = new ScorePacket();
+            scorePacket.Read(buffer);
+
+            // 점수 업데이트
+            UIManager.Instance.OnTriggerUpdateScoreBoard(scorePacket.playerScore);
+        }
+
     }
 }

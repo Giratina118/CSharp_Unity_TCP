@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7836717825834629032}
   - component: {fileID: -6273711187140567975}
   - component: {fileID: 5021157173674614302}
+  - component: {fileID: 6596855081108150493}
   m_Layer: 0
   m_Name: "\u0421TF_Missile_Blue"
   m_TagString: Untagged
@@ -97,6 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8822334bf99389046a3cfdcba78ca2a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ExplosionPrefab: {fileID: 100014, guid: 27144da5944035644ab61197e8e43e29, type: 3}
 --- !u!136 &5021157173674614302
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -116,7 +118,34 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.035
+  m_Radius: 0.04308144
   m_Height: 0.3
   m_Direction: 2
-  m_Center: {x: 0, y: 0, z: 0.135}
+  m_Center: {x: 0, y: 0, z: 0.13500002}
+--- !u!54 &6596855081108150493
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7090710131271465290}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

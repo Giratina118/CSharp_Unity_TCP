@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using static Server.ObjListPacket;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Server
 {
+    
+
     public class SessionManager
     {
         public static SessionManager Instance { get; } = new SessionManager();
@@ -13,7 +16,8 @@ namespace Server
         object _lock = new object();
         public Dictionary<long, ClientSession> Sessions = new Dictionary<long, ClientSession>(); // key: 클라이언트 id, value: 클라이언트 세션, 연결된 클라이언트 관리
         //int _sessionId = 0; // 클라이언트 id가 1씩 늘어나며 새로 연결한 클라이언트에게 id를 붙여줌)
-
+        //public PriorityQueue<long, int> ranking = new PriorityQueue<long, int>(Comparer<int>.Create((int a, int b) => b.CompareTo(a)));
+        
         // 새 세션 등록
         public void Add(ClientSession session)
         {
@@ -127,10 +131,6 @@ namespace Server
             }
         }
 
-        // 점수 전송
-        public void UpdatePoint()
-        {
-            // TODO: 점수 전송
-        }
+        
     }
 }

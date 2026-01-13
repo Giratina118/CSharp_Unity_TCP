@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,7 +117,7 @@ namespace Server
         }
 
         // 피격
-        public void Hit(ushort dmg)
+        public void Hit(ushort dmg, long shooterId)
         {
             // TODO: 매개변수로 발사한 사람이 누군지도 같이 받아오기(shooter)
             // TODO: 몬스터 소멸 시 모든 클라에게 누가 쓰러뜨렸는지 전달, 클라에서는 받아서 알림창에 띄움
@@ -127,16 +128,17 @@ namespace Server
             if (CurHP <= dmg) // 체력 0 시 소멸
             {
                 CurHP = 0;
-                Die();
+                Die(shooterId);
             }
             else
                 CurHP -= dmg;
         }
 
         // 소멸
-        private void Die()
+        private void Die(long shooterId)
         {
             IsDie = true;
+            ScoreManager.Instance.AddScore(shooterId, Point);
             Pos = _targetPos = _spawnPos;
             CurHP = MaxHP;
             // 모든 클라에게 소멸 전송

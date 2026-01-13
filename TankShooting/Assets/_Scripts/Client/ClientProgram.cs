@@ -87,15 +87,12 @@ namespace Client
         // 서버 연결
         public void OnConnectServer(long id, string name)
         {
-            SceneManager.LoadSceneAsync(1);
-
-            Debug.Log(_host);
-
             NickName = name;
             ClientId = id;
 
-            GameObject.Find("DisconnectServerButton").GetComponent<Button>().onClick.AddListener(OnDisconnectServer);
-            GameObject.Find("NameText").GetComponent<TMP_Text>().text = "name: " + NickName;
+            SceneManager.LoadSceneAsync(1);
+
+            Debug.Log(_host);
 
             // 커넥터 생성
             Connector = new Connector();
@@ -118,7 +115,7 @@ namespace Client
                 _isConnect = false;
 
                 // 점수창
-
+                UIManager.Instance.OpenResultScreen();
             }
         }
 

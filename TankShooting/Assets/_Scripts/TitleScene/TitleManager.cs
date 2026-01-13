@@ -98,7 +98,7 @@ public class TitleManager : MonoBehaviour
 
                 case (int)RequestType.Register:
                     // 회원가입 성공이면 로그인으로
-                    OnClickBackButton();
+                    OnClickBackToLoginButton();
                     break;
             }
         }
@@ -125,10 +125,13 @@ public class TitleManager : MonoBehaviour
 
         string response = www.downloadHandler.text;
         if (response.Equals("success"))
-            OnClickBackButton(); // 회원가입 성공
+            OnClickBackToLoginButton(); // 회원가입 성공
 
         RegisterName.text = RegisterEmail.text = RegisterPassword.text = "";
     }
+
+    //public void OnClickStartButton
+
 
     // 회원가입하러 가기 버튼
     public void OnClickGotoRegisterButton()
@@ -162,8 +165,14 @@ public class TitleManager : MonoBehaviour
         StartCoroutine(RegisterRequest());
     }
 
-    // 뒤로 가기 버튼
-    public void OnClickBackButton()
+    // 뒤로 가기 버튼(로그인 -> 최초화면)
+    public void OnClickBackToFirstButton()
+    {
+        LoginBG.SetActive(false);
+    }
+
+    // 뒤로 가기 버튼(회원가입 -> 로그인)
+    public void OnClickBackToLoginButton()
     {
         LoginBG.SetActive(true);
         RegisterBG.SetActive(false);

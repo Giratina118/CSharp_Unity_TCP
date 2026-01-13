@@ -71,6 +71,7 @@ namespace Server
 
             SessionManager.Instance.Remove(this); // 딕셔너리에서 삭제
             SpatialGrid.Instance.RemovePlayer(this);
+            ScoreManager.Instance.RemoveScore(Info.id);
         }
 
         // 패킷 보내면 실행

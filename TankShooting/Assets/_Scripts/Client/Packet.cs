@@ -22,6 +22,7 @@ namespace Client
         Move,               // 어떤 플레이어를 어디로 움직여야 하는지
         Chat,               // 어떤 플레이어가 어떤 채팅을 쳤는지
         Damage,             // 유저/몬스터 데미지 전송
+        Score,              // 점수 전송
 
         Max,
     }
@@ -513,6 +514,94 @@ namespace Client
             this.maxHp = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
             count += sizeof(ushort); // 현재 체력
         }
+    }
 
+    public struct PlayerScore
+    {
+        public long Id;
+        public int Score;
+        public string Name;
+
+        public PlayerScore(long id, int score, string name)
+        {
+            Id = id;
+            Score = score;
+            Name = name;
+        }
+    }
+
+    // 점수 전송 (top5 점수)
+    class ScorePacket : Packet
+    {
+        public List<PlayerScore> playerScore = new List<PlayerScore>();
+
+        public ScorePacket() { this.PacketType = (ushort)Client.PacketType.Score; }
+
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte> segment = SendBufferHelper.Open(4096);
+
+            bool success = true;
+            ushort count = 0; // 지금까지 몇 Byte를 Buffer에 밀어 넣었는가?
+
+            Span<byte> span = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort); // 패킷 사이즈
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.PacketType);
+            count += sizeof(ushort); // 패킷 아이디
+
+            success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), (ushort)playerScore.Count);
+            count += sizeof(ushort);
+
+            for (int i = 0; i < playerScore.Count; i++)
+            {
+                success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerScore[i].Id);
+                count += sizeof(long); // 플레이어 아이디
+                success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), this.playerScore[i].Score);
+                count += sizeof(int);  // 점수
+
+                ushort nameLen = (ushort)Encoding.Unicode.GetBytes(this.playerScore[i].Name, 0, playerScore[i].Name.Length, segment.Array, segment.Offset + count + sizeof(ushort));
+                success &= BitConverter.TryWriteBytes(span.Slice(count, span.Length - count), nameLen); // 길이
+                count += sizeof(ushort); // 채팅
+                count += nameLen;
+            }
+
+            success &= BitConverter.TryWriteBytes(span, count); // size는 작업이 끝난 뒤 초기화
+
+            if (success == false)
+                return null;
+
+            return SendBufferHelper.Close(count);
+        }
+
+        public override void Read(ArraySegment<byte> segment)
+        {
+            ushort count = 0;
+            ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort); // 패킷 사이즈
+            count += sizeof(ushort); // 패킷 아이디
+
+            playerScore.Clear();
+            ushort scoreLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+            count += sizeof(ushort);
+            for (int i = 0; i < scoreLen; i++)
+            {
+                long id = BitConverter.ToInt64(span.Slice(count, span.Length - count));
+                count += sizeof(long); // id
+                int score = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+                count += sizeof(int); // 점수
+
+                ushort nameLen = BitConverter.ToUInt16(span.Slice(count, span.Length - count));
+                count += sizeof(ushort); // 플레이어 네임
+                string name = Encoding.Unicode.GetString(span.Slice(count, nameLen));
+                count += nameLen;
+
+                UnityEngine.Debug.Log(name);
+
+                PlayerScore scores = new PlayerScore(id, score, name);
+                playerScore.Add(scores);
+            }
+        }
     }
 }

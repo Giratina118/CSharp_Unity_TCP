@@ -196,7 +196,7 @@ namespace Server
             long shooter = missile.ShooterId;
 
             missile.IsRemoved = true;
-            monster.Hit(missile.Damage); // 몬스터 데미지 처리
+            monster.Hit(missile.Damage, missile.ShooterId); // 몬스터 데미지 처리
             Console.WriteLine($"몬스터 맞춤 {monster.Type}, {monster.CurHP}/{monster.MaxHP}");
 
             MissileManager.Instance.Remove(missile); // 미사일 제거
@@ -224,6 +224,7 @@ namespace Server
 
                 // TODO: 점수 전송
                 SessionManager.Instance.Sessions[missile.ShooterId].Point += player.Point / 2;
+                ScoreManager.Instance.AddScore(missile.ShooterId, player.Point / 2);
             }
             else
             {

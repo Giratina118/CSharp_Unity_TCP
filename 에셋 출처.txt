@@ -13,3 +13,18 @@ https://assetstore.unity.com/packages/tools/game-toolkits/health-system-lite-hea
 UI
 https://kenney.nl/assets/ui-pack-sci-fi
 https://kenney.nl/assets/ui-pack
+
+폭발 파티클
+https://assetstore.unity.com/packages/vfx/particles/fire-explosions/particle-dissolve-shader-package-33631
+
+발포 사운드
+https://pixabay.com/sound-effects/film-special-effects-explosion-312361/
+
+폭발 사운드
+https://pixabay.com/sound-effects/epic-cinematic-explosion-454857/
+
+버튼 클릭 사운드
+https://pixabay.com/sound-effects/film-special-effects-button-click-289742/
+
+배경음악
+https://pixabay.com/sound-effects/musical-battle-march-action-loop-6935/

@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
 
     private Camera _camera; // 카메라
     private long _clientId; // 클라이언트 아이디
+    private string _name;   // 이름
 
     private ObjectInfo _playerInfo;  // 해당 플레이어 오브젝트의 현재 위치, 회전 정보
     private ObjectInfo _beforeInfo;  // 해당 플레이어 오브젝트의 이전 위치, 회전 정보

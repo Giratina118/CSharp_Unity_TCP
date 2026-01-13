@@ -49,7 +49,6 @@ namespace Server
                     MonsterManager.Instance.Update(TickDelta);
                     MissileManager.Instance.Update(TickDelta);
 
-
                     shortTimer -= TickDelta;
                     longTimer++;
                 }
@@ -60,9 +59,8 @@ namespace Server
                     longTimer -= longTimerRate;
 
                     // 점수 업데이트
-                    SessionManager.Instance.UpdatePoint();
+                    ScoreManager.Instance.UpdateScore();
                 }
-
 
                 await Task.Delay(SleepMilliSec);
             }
