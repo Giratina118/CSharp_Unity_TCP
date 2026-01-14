@@ -239,8 +239,10 @@ namespace Client
             ScorePacket scorePacket = new ScorePacket();
             scorePacket.Read(buffer);
 
-            // 점수 업데이트
-            UIManager.Instance.OnTriggerUpdateScoreBoard(scorePacket.playerScore);
+            if (scorePacket.playerScore.Count == 1 && scorePacket.playerScore[0].Name.Equals(""))
+                ClientProgram.Instance.Score = scorePacket.playerScore[0].Score;       // 자기 점수 업데이트
+            else
+                UIManager.Instance.OnTriggerUpdateScoreBoard(scorePacket.playerScore); // top5 점수보드 업데이트
         }
 
     }

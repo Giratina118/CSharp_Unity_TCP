@@ -27,6 +27,7 @@ namespace Client
         public Connector Connector;
         public long ClientId;   // 본인 id
         public string NickName; // 이름
+        public int Score = 0;   // 점수
 
         private bool _isConnect = false;  // 서버 연결 여부
         private bool _isGameOver = false; // 게임 오버 여부
@@ -76,7 +77,7 @@ namespace Client
                     ChatManager.Instance.SendChatting();        // 문자 보내기
 
                 PlayerManager.Instance.RemoveExitCharacter();   // 나간 플레이어 제거
-                OnDisconnectServer();                      // 게임 오버 체크
+                OnDisconnectServer();                           // 게임 오버 체크
             }
             catch (Exception e)
             {

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -73,6 +74,7 @@ public class UIManager : MonoBehaviour
     public void OpenResultScreen()
     {
         ResultScreen.SetActive(true);
+        ScoreResult.text = ClientProgram.Instance.Score.ToString();
     }
 
     // 다음으로 버튼(결과창 -> 랭킹창)
@@ -119,5 +121,26 @@ public class UIManager : MonoBehaviour
             ScoreBoardName.text += $"{i + 1}.  {scoresTemp[i].Name}\n";
             ScoreBoard.text += $"{scoresTemp[i].Score}\n";
         }
+    }
+
+    IEnumerator GetSortedRanking()
+    {
+        string url = "http://localhost:8081/member/save";
+        UnityWebRequest www = UnityWebRequest.Get(url);
+
+        yield return www.SendWebRequest();
+
+        /*
+        if (www.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError(www.error);
+        }
+        else
+        {
+            // 서버에서 받은 정렬된 JSON 문자열
+            string jsonResult = www.downloadHandler.text;
+            // JSON 파싱 후 바로 UI에 표시
+        }
+        */
     }
 }

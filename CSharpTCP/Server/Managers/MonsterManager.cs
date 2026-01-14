@@ -163,8 +163,6 @@ namespace Server
         private ushort _monsterId = 0;
 
         public bool IsSpawning = false;
-        float _spawnInterval = 5.0f;
-        float _spawnTimer = 5.0f;
 
         private const string MonsterDataPath = "MonsterData.csv";
         private const string MonsterSpawnDataPath = "MonsterSpawnData.csv";

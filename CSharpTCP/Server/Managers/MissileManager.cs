@@ -40,7 +40,6 @@ namespace Server
         public List<Missile> Missiles = new List<Missile>();
 
         const float PI = 3.141592f;
-        private int _missilesId = 0;
         private Vector3 _muzzle = new Vector3(0.0f, 0.5f, 0.0f);
 
         public void Update(float deltaTime)

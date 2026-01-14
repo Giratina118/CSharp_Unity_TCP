@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -19,6 +20,12 @@ public class LoginDTO // 서버의 MemberLoginDTO와 매칭
 
 public class TitleManager : MonoBehaviour
 {
+    // 처음 화면
+    public GameObject FirstBtnBG;
+
+    // 설정 화면
+    public GameObject SettingBG;
+    
     // 로그인 UI
     public GameObject LoginBG;
     public TMP_InputField LoginEmail;
@@ -34,12 +41,6 @@ public class TitleManager : MonoBehaviour
     {
         Login = 1,
         Register,
-    }
-
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0) && !LoginBG.activeSelf && !RegisterBG.activeSelf)
-            LoginBG.SetActive(true);
     }
 
     // 웹서버 요청
@@ -130,14 +131,53 @@ public class TitleManager : MonoBehaviour
         RegisterName.text = RegisterEmail.text = RegisterPassword.text = "";
     }
 
-    //public void OnClickStartButton
+    // 시작 화면
+    // 시작하기 버튼
+    public void OnClickStartButton()
+    {
+        FirstBtnBG.SetActive(false);
+        LoginBG.SetActive(true);
+    }
+
+    // 설정 버튼
+    public void OnClickSettingButton()
+    {
+        FirstBtnBG.SetActive(false);
+        SettingBG.SetActive(true);
+    }
+
+    // 나가기 버튼
+    public void OnClickExitButton()
+    {
+        Application.Quit();
+    }
 
 
+    // 설정 화면
+    // 설정 저장 버튼
+    public void OnClickSaveSettingButton()
+    {
+        AudioManager.Instance.Save();
+    }
+
+    // 뒤로 가기 버튼(설정/로그인 -> 최초화면)
+    public void OnClickBackToFirstButton(bool isSetting)
+    {
+        SettingBG.SetActive(false);
+        LoginBG.SetActive(false);
+        FirstBtnBG.SetActive(true);
+
+        if (isSetting)
+            AudioManager.Instance.SetVolume();
+    }
+
+
+    // 로그인 화면
     // 회원가입하러 가기 버튼
     public void OnClickGotoRegisterButton()
     {
-        RegisterBG.SetActive(true);
         LoginBG.SetActive(false);
+        RegisterBG.SetActive(true);
     }
 
     // 로그인 버튼
@@ -149,13 +189,8 @@ public class TitleManager : MonoBehaviour
         StartCoroutine(UnityWebRequest((int)RequestType.Login));
     }
 
-    // 나가기 버튼
-    public void OnClickExitButton()
-    {
-        Application.Quit();
-    }
 
-
+    // 회원가입 화면
     // 회원가입 버튼
     public void OnClickRegisterButton()
     {
@@ -163,12 +198,6 @@ public class TitleManager : MonoBehaviour
             return;
 
         StartCoroutine(RegisterRequest());
-    }
-
-    // 뒤로 가기 버튼(로그인 -> 최초화면)
-    public void OnClickBackToFirstButton()
-    {
-        LoginBG.SetActive(false);
     }
 
     // 뒤로 가기 버튼(회원가입 -> 로그인)
