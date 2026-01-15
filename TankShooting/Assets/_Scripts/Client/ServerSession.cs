@@ -1,13 +1,7 @@
 ﻿using ServerCore;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Client
@@ -49,13 +43,13 @@ namespace Client
             switch ((PacketType)packetType)
             {
                 case PacketType.PlayerInfoReq: OnRecvPlayerInfoReq(buffer); break;
-                case PacketType.PlayerInfoOk:  OnRecvPlayerInfoOk(buffer);  break;
-                case PacketType.CreateRemove:  OnRecvCreateRemove(buffer);  break;
-                case PacketType.ObjList:       OnRecvObjectList(buffer);    break;
-                case PacketType.Move:          OnRecvMove(buffer);          break;
-                case PacketType.Chat:          OnRecvChat(buffer);          break;
-                case PacketType.Damage:        OnRecvDamage(buffer);        break;
-                case PacketType.Score:         OnRecvScore(buffer);         break;
+                case PacketType.PlayerInfoOk: OnRecvPlayerInfoOk(buffer); break;
+                case PacketType.CreateRemove: OnRecvCreateRemove(buffer); break;
+                case PacketType.ObjList: OnRecvObjectList(buffer); break;
+                case PacketType.Move: OnRecvMove(buffer); break;
+                case PacketType.Chat: OnRecvChat(buffer); break;
+                case PacketType.Damage: OnRecvDamage(buffer); break;
+                case PacketType.Score: OnRecvScore(buffer); break;
             }
         }
 
@@ -216,20 +210,17 @@ namespace Client
                         hitPlayer.OnTriggerUpdateHpbar((int)damagePacket.curHp - (int)damagePacket.damage);
                         UIManager.Instance.OnTriggerDamaged();
                     }
-                    if (damagePacket.attackId == ClientProgram.Instance.ClientId)
-                    {
-                        // 데미지 표시 띄우기
-                    }
 
                     break;
 
                 case (ushort)MsgType.DamageMonster:
                     // 체력 감소, 공격자가 본인이면 데미지 표시 띄우기
                     MonsterManager.Instance.MonsterObjDic[damagePacket.hitId].OnTriggerHit(damagePacket.damage, damagePacket.curHp, damagePacket.maxHp);
-                    if (damagePacket.attackId == ClientProgram.Instance.ClientId)
-                    {
-                        // 데미지 표시 띄우기
-                    }
+                    break;
+
+                case (ushort)MsgType.HealPlayer:
+                    // 체력 회복
+                    PlayerManager.Instance.PlayerObjDic[ClientProgram.Instance.ClientId].OnTriggerUpdateHpbar(damagePacket.curHp);
                     break;
             }
         }
@@ -239,11 +230,10 @@ namespace Client
             ScorePacket scorePacket = new ScorePacket();
             scorePacket.Read(buffer);
 
-            if (scorePacket.playerScore.Count == 1 && scorePacket.playerScore[0].Name.Equals(""))
-                ClientProgram.Instance.Score = scorePacket.playerScore[0].Score;       // 자기 점수 업데이트
+            if (scorePacket.playerScore.Count == 1 && scorePacket.playerScore[0].Name.Equals("")) // 자기 점수 업데이트
+                UIManager.Instance.OnTriggerUpdateMyScore(scorePacket.playerScore[0].Score);
             else
                 UIManager.Instance.OnTriggerUpdateScoreBoard(scorePacket.playerScore); // top5 점수보드 업데이트
         }
-
     }
 }

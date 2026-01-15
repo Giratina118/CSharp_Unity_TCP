@@ -1,4 +1,5 @@
 using Client;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -20,13 +21,21 @@ public class UIManager : MonoBehaviour
     public Button ToTitleButton;     // 타이틀 버튼(점수창)
 
     public TMP_Text NameText;        // 이름 텍스트
+    public TMP_Text MyScoreText;     // 자기 점수 텍스트 
     public TMP_Text ScoreBoardName;  // 점수판 top5 이름
     public TMP_Text ScoreBoard;      // 점수판 top5 점수
     public TMP_Text ScoreResult;     // 최종 점수(결과창)
 
-    private List<PlayerScore> scoresTemp = new List<PlayerScore>();
-    private bool _onUpdateScoreBoard = false;
-    private bool _isHit = false;
+    public TMP_Text RankingRankText;  // 랭킹 출력  순위
+    public TMP_Text RankingNameText;  // 랭킹 출력  이름
+    public TMP_Text RankingScoreText; // 랭킹 출력  점수
+    public TMP_Text RankingRateText;  // 랭킹 출력  백분위
+
+    private int _myScoreTemp = 0; // 자기 점수 임시 저장
+    private List<PlayerScore> _scoresTemp = new List<PlayerScore>(); // top5 점수 임시 저장
+    private bool _onUpdateMyScore = false;    // 자기 점수 갱신
+    private bool _onUpdateScoreBoard = false; // top5 점수판 갱신
+    private bool _isHit = false;              // 데미지 받았을 때 hp 갱신
 
     void Awake()
     {
@@ -35,7 +44,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        NameText.text = $"Name: {ClientProgram.Instance.NickName}";
+        NameText.text = $"{ClientProgram.Instance.NickName}";
         DisconnectButton.onClick.AddListener(ClientProgram.Instance.GameOver);
     }
 
@@ -44,6 +53,7 @@ public class UIManager : MonoBehaviour
         if (_isHit)
             StartCoroutine(FlickerRedScreen());
 
+        UpdateMyScore();
         UpdateScoreBoard();
     }
 
@@ -82,6 +92,8 @@ public class UIManager : MonoBehaviour
     {
         RankingScreen.SetActive(true);
         ResultScreen.SetActive(false);
+
+        StartCoroutine(GetRanking());
     }
 
     // 타이틀로 버튼(랭킹창 -> 타이틀창)
@@ -91,21 +103,21 @@ public class UIManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    // 점수 갱신 트리거
+    // 점수판(현재 top5) 갱신 트리거
     public void OnTriggerUpdateScoreBoard(List<PlayerScore> scores)
     {
-        scoresTemp.Clear();
+        _scoresTemp.Clear();
 
         foreach (PlayerScore score in scores)
         {
-            scoresTemp.Add(score);
+            _scoresTemp.Add(score);
             Debug.Log($"{score.Id}  {score.Name}  {score.Score}");
         }
         
         _onUpdateScoreBoard = true;
     }
 
-    // 점수 갱신
+    // 점수판(현재 top5) 갱신
     public void UpdateScoreBoard()
     {
         if (!_onUpdateScoreBoard)
@@ -115,32 +127,79 @@ public class UIManager : MonoBehaviour
 
         ScoreBoardName.text = ScoreBoard.text = "";
 
-        int scoreNum = scoresTemp.Count;
+        int scoreNum = _scoresTemp.Count;
         for (int i = 0; i < scoreNum; i++)
         {
-            ScoreBoardName.text += $"{i + 1}.  {scoresTemp[i].Name}\n";
-            ScoreBoard.text += $"{scoresTemp[i].Score}\n";
+            ScoreBoardName.text += $"{i + 1}.  {_scoresTemp[i].Name}\n";
+            ScoreBoard.text += $"{_scoresTemp[i].Score}\n";
         }
     }
 
-    IEnumerator GetSortedRanking()
+    // 자기 점수 갱신 트리거
+    public void OnTriggerUpdateMyScore(int myScore)
     {
-        string url = "http://localhost:8081/member/save";
-        UnityWebRequest www = UnityWebRequest.Get(url);
+        _myScoreTemp = myScore;
+        _onUpdateMyScore = true;
+    }
 
+    // 자기 점수 갱신
+    public void UpdateMyScore()
+    {
+        if (!_onUpdateMyScore)
+            return;
+
+        MyScoreText.text = _myScoreTemp.ToString();
+        ClientProgram.Instance.Score = _myScoreTemp;
+    }
+
+    [Serializable]
+    public class MemberListWrapper
+    {
+        public List<MemberData> list; // JSON 배열을 담을 리스트
+    }
+
+    [Serializable]
+    public class MemberData
+    {
+        public long id;
+        public string memberName;
+        public int memberScore;
+    }
+
+    // 랭킹 요청 함수
+    IEnumerator GetRanking()
+    {
+        // 전체 점수 리스트 수 가져오기(상위 몇%인지 표시하기 위함)
+        string url = "http://localhost:8081/member/rank/count";
+        UnityWebRequest www = UnityWebRequest.Get(url);
+        yield return www.SendWebRequest();
+        int totalCount = int.Parse(www.downloadHandler.text);
+
+        url = "http://localhost:8081/member/rank";
+        www = UnityWebRequest.Get(url);
         yield return www.SendWebRequest();
 
-        /*
-        if (www.result != UnityWebRequest.Result.Success)
+        // 자기 점수가 업데이트 되는 것보다 점수판이 띄워지는게 빨라서 이번 점수가 반영되지 않은 상태의 점수판이 보여짐
+        
+        if (www.result == UnityWebRequest.Result.Success)
         {
-            Debug.LogError(www.error);
+            string json = www.downloadHandler.text;
+            string newJson = "{ \"list\": " + json + "}";
+            MemberListWrapper rankingData = JsonUtility.FromJson<MemberListWrapper>(newJson);
+
+            int rank = 1;
+            RankingRankText.text = RankingNameText.text = RankingScoreText.text = RankingRateText.text = "";
+            foreach (var member in rankingData.list)
+            {
+                RankingRankText.text += $"{rank}\n";
+                RankingNameText.text += $"{member.memberName}\n";
+                RankingScoreText.text += $"{member.memberScore}\n";
+
+                int rate = (int)((float)(rank - 1.0f) / totalCount * 100.0f);
+                RankingRateText.text += $"{rate}%\n";
+
+                rank++;
+            }
         }
-        else
-        {
-            // 서버에서 받은 정렬된 JSON 문자열
-            string jsonResult = www.downloadHandler.text;
-            // JSON 파싱 후 바로 UI에 표시
-        }
-        */
     }
 }

@@ -53,6 +53,7 @@ namespace Client
         // DamagePacket
         DamagePlayer,   // 플레이어 데미지
         DamageMonster,  // 몬스터 데미지
+        HealPlayer,     // 플레이어 회복
 
         Max,
     };

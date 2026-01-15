@@ -110,7 +110,7 @@ namespace Client
 
                 // 서버에 연결 해제 요청
                 Camera camera = Camera.main;
-                camera.transform.parent = transform.root;
+                camera.transform.parent = new GameObject("CameraParent").transform;
 
                 Connector.CurrentSession.Disconnect();
                 _isConnect = false;

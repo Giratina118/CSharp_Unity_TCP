@@ -14,6 +14,12 @@ UI
 https://kenney.nl/assets/ui-pack-sci-fi
 https://kenney.nl/assets/ui-pack
 
+버튼
+https://assetstore.unity.com/packages/2d/gui/icons/2d-rpg-button-7-278861
+
+슬라이더
+https://assetstore.unity.com/packages/2d/gui/violet-themed-ui-235559
+
 폭발 파티클
 https://assetstore.unity.com/packages/vfx/particles/fire-explosions/particle-dissolve-shader-package-33631
 

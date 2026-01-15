@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject Smoke;          // 스모그 (발포 시 연기 나도록)
     public Transform[] WheelObjects;  // 바퀴 오브젝트들
     public Transform Muzzle;          // 총구
     public bool IsMine = false;       // 본인 오브젝트인지
@@ -31,12 +32,18 @@ public class PlayerController : MonoBehaviour
     private float _updateInterval = 0.25f; // 위치 업데이트 주기
     private float _updateTimer = 0.0f;     // 위치 업데이트 타이머
 
+    private ParticleSystem _smokeParticle; // 스모그 파티클
+
     [SerializeField]
     private Image _hpBar;
     private int _maxHp = 100;
     private int _curHp = 100;
     private bool _onUpdateHpBar = false;
 
+    private void Start()
+    {
+        _smokeParticle = Smoke.GetComponent<ParticleSystem>();
+    }
 
     void Update()
     {
@@ -99,9 +106,12 @@ public class PlayerController : MonoBehaviour
             _translate = (_playerInfo.Position - _beforeInfo.Position) / _updateInterval; // 위치값 변화량
             _rotate = (_playerInfo.Rotation - _beforeInfo.Rotation) / _updateInterval;    // 회전값 변화량
             _rotate.y = Mathf.DeltaAngle(_beforeInfo.Rotation.y, _playerInfo.Rotation.y) / _updateInterval; // 0도/360도 부근을 통과할때 역회전이 발생하는 문제 방지
+
+            Debug.Log($"{_clientId} {_name}, translate: {_translate}, _rotate: {_rotate}");
+            //RotateWheel(_rotate.y);
         }
 
-        // 0.25초(혹은 _updateInterval) 이상 갱신이 없으면 멈춤
+        // 0.25초(_updateInterval) 이상 갱신이 없으면 멈춤
         if (_updateTimer > _updateInterval)
         {
             _translate = Vector3.zero;
@@ -221,5 +231,22 @@ public class PlayerController : MonoBehaviour
         _onUpdateHpBar = false;
         Debug.Log($"{_curHp} / {_maxHp}");
         _hpBar.fillAmount = (float)_curHp / _maxHp; ;
+    }
+
+    // 스모그 켜기
+    public void OnSmoke()
+    {
+        Smoke.SetActive(true);
+        _smokeParticle.Pause();
+        _smokeParticle.Play();
+        StartCoroutine(OffSmoke());
+    }
+
+    // 스모그 끄기
+    IEnumerator OffSmoke()
+    {
+        yield return new WaitForSecondsRealtime(1.5f);
+        _smokeParticle.Pause();
+        Smoke.SetActive(false);
     }
 }

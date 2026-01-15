@@ -29,7 +29,6 @@ namespace Server
         {
             Vector3 prev = Pos;
             Pos += Dir * _speed * deltaTime;
-            //Console.WriteLine($"위치: {Pos}");
         }
     }
 

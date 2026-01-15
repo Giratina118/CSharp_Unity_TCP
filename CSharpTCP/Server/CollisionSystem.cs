@@ -12,7 +12,7 @@ namespace Server
     {
         public static CollisionSystem Instance { get; } = new CollisionSystem();
 
-        private SpatialGrid _grid = SpatialGrid.Instance;
+        private SpatialGrid _grid = SpatialGrid.Instance; // 전체 맵을 작은 구역들로 나눠서 검사 
 
         // 미사일이 이동한 선분(from -> to) 기반으로 충돌 검사
         public void MissileCollisionCheck(Vector3 prevPos, Vector3 currPos, Missile missile)
@@ -29,7 +29,7 @@ namespace Server
             // 셀 안 오브젝트 충돌 검사
             foreach (GridCell cell in cells)
             {
-                foreach (Structure structure in cell.Structures) // 건물 충돌
+                foreach (Structure structure in cell.Structures) // 건물 충돌 체크
                 {
                     Vector3? collisionPos = CollisionLineRect(prevPos, currPos, structure.Pos, structure.Size);
 
@@ -46,7 +46,7 @@ namespace Server
                     }
                 }
 
-                foreach (Monster monster in cell.Monsters) // 몬스터 충돌
+                foreach (Monster monster in cell.Monsters) // 몬스터 충돌 체크
                 {
                     if (monster.IsDie)
                         continue;
@@ -66,7 +66,7 @@ namespace Server
                     }
                 }
 
-                foreach (ClientSession player in cell.Players) // 플레이어 충돌
+                foreach (ClientSession player in cell.Players) // 플레이어 충돌 체크
                 {
                     float radius = player.CollisionRadius + missile.Radius;
                     Vector3? collisionPos = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
@@ -214,19 +214,18 @@ namespace Server
         {
             missile.IsRemoved = true;
             
-            if (player.CurHP <= missile.Damage)
+            if (player.CurHP <= missile.Damage) // 죽음
             {
-                // 처치 채팅 전송
+                // 처치 채팅 전송(킬 로그)
                 ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{SessionManager.Instance.Sessions[missile.ShooterId].Name} --kill--> {player.Name}" };
                 ArraySegment<byte> chatSegment = chatPacket.Write();
                 if (chatPacket != null)
                     SessionManager.Instance.BroadcastAll(chatSegment);
 
-                // TODO: 점수 전송
-                SessionManager.Instance.Sessions[missile.ShooterId].Point += player.Point / 2;
-                ScoreManager.Instance.AddScore(missile.ShooterId, player.Point / 2);
+                // 점수 전송
+                ScoreManager.Instance.AddScore(missile.ShooterId, ScoreManager.Instance.ScoreDic[player.Info.id] / 2);
             }
-            else
+            else // 안 죽음
             {
                 // 플레이어 데미지 전달
                 DamagePacket damagePacket = new DamagePacket() { messageType = (ushort)MsgType.DamagePlayer, hitId = player.Info.id, attackId = missile.ShooterId, damage = missile.Damage, curHp = player.CurHP };
@@ -239,14 +238,6 @@ namespace Server
             Console.WriteLine($"플레이어 맞춤 {player.Name}");
 
             MissileManager.Instance.Remove(missile); // 미사일 제거
-
-            // TODO: 플레이어 피격 처리(서버 내부), 클라이언트 세션에서 체력 관리 및 피격 함수 생성, 거기서 피격당한 플레이어에게 전달
-            // TODO: 플레이어 체력에 따라 소멸 처리, 다른 클라들에게 누가 쓰러뜨렸는지 전달, 쓰러뜨린 플레이어는 쓰러진 플레이어가 가지고 있던 점수의 절반 획득
-            // TODO: 쓰러진 플레이어는 서버 연결 해제, 최종 점수 표시
-
-            // TODO: 공격 성공한 플레이어(shooter)에게 공격 성공 전달(전달 요소: 데미지, 피격 대상 위치)
-
-            //missile.IsAlive = false;
         }
     }
 }

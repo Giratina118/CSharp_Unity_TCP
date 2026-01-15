@@ -131,7 +131,6 @@ public class MonsterManager : MonoBehaviour
         {
             foreach (ObjectInfo info in _monsterInfosTemp)
             {
-                Debug.Log($"{info.Id} is {MonsterObjDic[info.Id] != null}");
                 if (MonsterObjDic[info.Id] != null)
                     MonsterObjDic[info.Id].SetTargetPos(info.Position);
             }

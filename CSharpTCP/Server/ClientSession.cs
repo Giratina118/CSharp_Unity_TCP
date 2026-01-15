@@ -15,35 +15,41 @@ namespace Server
 {
     public class ClientSession : PacketSession
     {
-        public string Name = ""; // 이름
-        public ushort CurHP = 100;
-        public ushort MaxHP = 100;
-        public float CollisionRadius = 1.5f;
-        public ObjectInfo Info = new ObjectInfo();
-        public int Point = 0;
+        public string Name = "";   // 이름
+        public ushort CurHP = 100; // 현재 체력
+        public ushort MaxHP = 100; // 최대 체력
+        public float CollisionRadius = 1.5f;       // 반지름(충돌 반경)
+        public ObjectInfo Info = new ObjectInfo(); // 정보(위치, 회전)
 
         private float _moveSpeed = 4.0f;       // 이동 속도
         private float _updateInterval = 0.25f; // 갱신 간격
-        private DateTime _beforeRequestTime;
-        
-        // TODO: 클라들 점수 추가, 점수 관리 및 업데이트(1초 마다 클라들에게 전송)
+        private DateTime _beforeRequestTime;   // 이전 요청 주기
+        private ushort _heal = 20; // 체력 회복량(몬스터 처치 시)
 
+        // 피격
         public void Hit(ushort dmg)
         {
             if (CurHP <= dmg) // 체력 0 시 소멸
             {
                 CurHP = 0;
-
-                // TODO: 접속 해제 시키기
                 CreateRemovePacket crPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.DieMe, id = Info.id };
-
                 ArraySegment<byte> playerSegment = crPacket.Write();
-                Send(playerSegment);
-                //if (crPacket != null)
-                //    SessionManager.Instance.BroadcastAll(playerSegment);
+                Send(playerSegment); // 체력 0 시 죽었다고 알려주기
             }
             else
                 CurHP -= dmg;
+        }
+
+        // 체력 회복(몬스터 처치 시)
+        public void Heal()
+        {
+            CurHP += _heal;
+            if (CurHP > MaxHP)
+                CurHP = MaxHP;
+
+            DamagePacket sendChatPacket = new DamagePacket() { messageType = (ushort)MsgType.HealPlayer, attackId = Info.id, hitId = Info.id, curHp = CurHP, maxHp = MaxHP, damage = 0 };
+            ArraySegment<byte> segment = sendChatPacket.Write();
+            Send(segment); // 체력 회복 알려주기
         }
 
         // 연결되면 실행
@@ -77,7 +83,7 @@ namespace Server
         // 패킷 보내면 실행
         public override void OnSend(int numOfBytes)
         {
-            //Console.WriteLine($"OnSend");
+
         }
 
         // 패킷 받으면 실행
@@ -141,7 +147,7 @@ namespace Server
                 case (int)MsgType.RemovePlayer:
                     ArraySegment<byte> playerSegment = crPacket.Write();
                     if (crPacket != null)
-                        SessionManager.Instance.BroadcastAll(playerSegment); // 생성/삭제 모든 클라이언트에 전송
+                        SessionManager.Instance.BroadcastAll(playerSegment); // 플레이어 생성/삭제 모든 클라이언트에 전송
                     break;
 
                 case (int)MsgType.CreateMissile:
@@ -150,7 +156,7 @@ namespace Server
                     if (crPacket != null)
                     {
                         MissileManager.Instance.Add(Info);
-                        SessionManager.Instance.BroadcastAll(missileSegment); // 생성/삭제 모든 클라이언트에 전송
+                        SessionManager.Instance.BroadcastAll(missileSegment); // 미사일 생성 모든 클라이언트에 전송
                     }
                     break;
             }
@@ -169,20 +175,14 @@ namespace Server
             Vector3 newPos = movePacket.objInfo.position;
             Vector3 newRot = movePacket.objInfo.rotation;
 
-
             Vector3 prev = Info.position;
             Info.position = newPos;
             SpatialGrid.Instance.UpdatePlayer(this, prev);
 
-            //Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}");
-
             // 이동, 회전값에 이상이 없는지 검사 후 처리, 문제가 있다면 해당 클라 위치를 롤백처리, 문제가 없다면 다른 클라에게 전송
-            //Console.WriteLine($"위치 변화량: {Vector3.Distance(Info.position, newPos)}, {{{newPos.X - Info.position.X}, {newPos.Y - Info.position.Y}, {newPos.Z - Info.position.Z}}}\n");
-
             bool _isrollback = false;
 
             // 요청 주기가 지나치게 짧은 경우 롤백
-            
             TimeSpan interval = DateTime.Now - _beforeRequestTime;
             if (interval.TotalSeconds < _updateInterval * 0.9f)
             {
@@ -204,21 +204,21 @@ namespace Server
                 _isrollback = true;
             }
             
+            // 롤백해야 하는 경우
             if (_isrollback)
             {
                 _isrollback = false;
                 movePacket.messageType = (ushort)MsgType.RollbackPlayer;
                 movePacket.objInfo = Info;
+
                 ArraySegment<byte> rollbackSegment = movePacket.Write();
-                Send(rollbackSegment);
+                Send(rollbackSegment); // 이전 상태 전송
                 return;
             }
 
             Info.position = newPos;
             Info.rotation = newRot;
-            //Console.WriteLine($"movePacket | msgType: {movePacket.messageType}, ID: {movePacket.playerInfo.id}, " +
-            //    $"pos: {{{Info.position.X}, {Info.position.Y}, {Info.position.Z}}}, rot: {{{Info.rotation.X}, {Info.rotation.Y}, {Info.rotation.Z}}}\n");
-
+            
             ArraySegment<byte> segment = movePacket.Write();
             if (movePacket != null)
                 SessionManager.Instance.BroadcastExcept(segment, Info.id); // 본인을 제외한 다른 클라리언트들에 위치정보 전송
@@ -230,12 +230,9 @@ namespace Server
             ChatPacket recvChatPacket = new ChatPacket();
             recvChatPacket.Read(buffer);
 
-            Console.WriteLine($"Chat | ID: {recvChatPacket.playerId}, name: {Name}, chat: {recvChatPacket.chat}\n");
-
             // 모든 플레이어들에게 채팅 전송
             string sendChat = SessionManager.Instance.Sessions[recvChatPacket.playerId].Name + ": " + recvChatPacket.chat;
             ChatPacket sendChatPacket = new ChatPacket() { playerId = recvChatPacket.playerId, chat = sendChat };
-
             ArraySegment<byte> segment = sendChatPacket.Write();
             if (sendChatPacket != null)
                 SessionManager.Instance.BroadcastAll(segment);

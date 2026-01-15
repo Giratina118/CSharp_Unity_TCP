@@ -63,6 +63,8 @@ public class MissileManager : MonoBehaviour
 
         GameObject newMissile = Instantiate(MissilePrefab, PlayerManager.Instance.PlayerObjDic[_shooterId].Muzzle.position, PlayerManager.Instance.PlayerObjDic[_shooterId].transform.rotation);
         newMissile.transform.parent = _missilerParent.transform;
+
+        PlayerManager.Instance.PlayerObjDic[_shooterId].OnSmoke();
     }
 
     private void OnTriggerEnter(Collider other)

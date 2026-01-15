@@ -25,6 +25,8 @@ public class MissileController : MonoBehaviour
         if ((other.CompareTag("Player") && other.GetComponent<PlayerController>().IsMine))
             return;
 
+        Debug.Log($"{other.gameObject.name}");
+
         GameObject newParticle = Instantiate(ExplosionPrefab, this.transform.position, Quaternion.identity);
         newParticle.transform.SetParent(this.transform.parent);
         AudioSource explosionAudio = newParticle.GetComponent<AudioSource>();

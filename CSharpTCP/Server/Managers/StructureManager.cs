@@ -26,40 +26,35 @@ namespace Server
     {
         public static StructureManager Instance { get; } = new StructureManager();
 
-        //public Dictionary<int, Structure> Structures = new Dictionary<int, Structure>();
-        public List<Structure> Structures = new List<Structure>();
-        public Dictionary<int, StructureData> StructureDataDic = new Dictionary<int, StructureData>();
-        List<StructureSpawnData> StructureSpawnDateList = new List<StructureSpawnData>();
-        private ushort _structurerId = 0;
+        public List<Structure> Structures = new List<Structure>(); // 건물 목록
+        public Dictionary<int, StructureData> StructureDataDic = new Dictionary<int, StructureData>(); // 건물 정보(파싱받은 데이터)
+        public List<StructureSpawnData> StructureSpawnDateList = new List<StructureSpawnData>();       // 건물 스폰 정보(파싱받은 데이터)
 
-        private const string StructureDataPath = "StructureData.csv";
-        private const string StructureSpawnDataPath = "StructureSpawnData.csv";
+        private const string StructureDataPath = "StructureData.csv";           // 건물 정보 파싱 파일명
+        private const string StructureSpawnDataPath = "StructureSpawnData.csv"; // 건물 스폰 정보 파싱 파일명
 
+        // 건물 정보 초기화
         public void InitData()
         {
             StructureDataDic = LoadStructureData(StructureDataPath);
             StructureSpawnDateList = LoadStructureSpawnData(StructureSpawnDataPath);
 
             foreach (StructureSpawnData spawnData in StructureSpawnDateList)
-            {
                 Spawn(spawnData);
-            }
         }
 
+        // 건물 추가
         public void Add(Structure structure)
         {
-            _structurerId++;
             Structures.Add(structure);
             SpatialGrid.Instance.AddStructure(structure);
         }
 
+        // 건물 스폰
         public void Spawn(StructureSpawnData spawnData)
         {
             Structure structure = new Structure(StructureDataDic[spawnData.Type], spawnData);
-
             Add(structure);
-
-            Console.WriteLine($"Structure Spawned: {_structurerId}  {StructureDataDic[spawnData.Type].Type}");
         }
     }
 }

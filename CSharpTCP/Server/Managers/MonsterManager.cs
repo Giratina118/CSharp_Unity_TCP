@@ -25,12 +25,12 @@ namespace Server
         public float Radius;  // 반지름
         public bool IsDie;    // 사망 여부
 
-        private Vector3 _spawnPos;
-        private Vector3 _targetPos;
-        private Vector3 _moveDir;
+        private Vector3 _spawnPos;  // 스폰 위치
+        private Vector3 _targetPos; // 이동 위치
+        private Vector3 _moveDir;   // 이동 방향
         private float _moveInterval = 3.0f;     // 이동 변경 간격
         private float _moveTimer = 0.0f;        // 이동 변경 타이머
-        private float _respawnInterval = 5.0f; // 리스폰 간격
+        private float _respawnInterval = 10.0f; // 리스폰 간격
         private float _respawnTimer = 0.0f;     // 리스폰 타이머
         private float _moveRange = 20.0f;       // 이동 반경
 
@@ -59,17 +59,10 @@ namespace Server
             _spawnPos = Pos;
         }
         
-        
         public void Update(float deltaTime)
         {
-            if (IsDie)
-            {
-                Respawn(deltaTime);
-            }
-            else
-            {
-                Move(deltaTime);
-            }
+            if (IsDie) Respawn(deltaTime); // 죽은 상태면 리스폰 대기
+            else       Move(deltaTime);    // 살아있으면 이동
         }
 
         // 리스폰
@@ -81,16 +74,16 @@ namespace Server
                 _respawnTimer = 0.0f;
                 IsDie = false;
 
-                // TODO: 모든 클라에게 리스폰 전송
+                // 모든 클라에게 리스폰 전송
                 CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RespawnMonster, id = Id };
                 ArraySegment<byte> monsterSegment = monsterPacket.Write();
                 SessionManager.Instance.BroadcastAll(monsterSegment);
             }
         }
 
+        // 이동
         public void Move(float deltaTime)
         {
-            // 일정 시간마다 갱신
             _moveTimer += deltaTime;
             if (_moveTimer > _moveInterval)
             {
@@ -105,7 +98,7 @@ namespace Server
 
             float distance = Vector3.Distance(Pos, _targetPos);
 
-            // 목적지에 아주 가깝지 않을 때만 이동
+            // 목적지에 다다르면 이동X
             if (distance > 0.1f)
             {
                 _moveDir = Vector3.Normalize(_targetPos - Pos);
@@ -119,12 +112,6 @@ namespace Server
         // 피격
         public void Hit(ushort dmg, long shooterId)
         {
-            // TODO: 매개변수로 발사한 사람이 누군지도 같이 받아오기(shooter)
-            // TODO: 몬스터 소멸 시 모든 클라에게 누가 쓰러뜨렸는지 전달, 클라에서는 받아서 알림창에 띄움
-            // TODO: 몬스터 소멸 시 쓰러뜨린 클라에게 점수 추가(서버 내부에서), 점수는 1초에 1번씩 각 클라에게 전송
-            // TODO: 몬스터 소멸 시 해당 위치에 새로운 회복 아이템 생성
-            Console.WriteLine("맞음");
-
             if (CurHP <= dmg) // 체력 0 시 소멸
             {
                 CurHP = 0;
@@ -141,31 +128,28 @@ namespace Server
             ScoreManager.Instance.AddScore(shooterId, Point);
             Pos = _targetPos = _spawnPos;
             CurHP = MaxHP;
+
             // 모든 클라에게 소멸 전송
             CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RemoveMonster, id = Id };
             ArraySegment<byte> monsterSegment = monsterPacket.Write();
             SessionManager.Instance.BroadcastAll(monsterSegment);
 
-            // TODO: 회복 아이템 생성
-
-            //SpatialGrid.Instance.RemoveMonster(this);
+            SessionManager.Instance.Sessions[shooterId].Heal();
         }
     }
+
 
     public class MonsterManager
     {
         public static MonsterManager Instance { get; } = new MonsterManager();
 
-        public Dictionary<int, Monster> Monsters = new Dictionary<int, Monster>();
-        public Dictionary<int, MonsterData> MonsterDataDic = new Dictionary<int, MonsterData> ();
-        List<MonsterSpawnData> MonsterSpawnDateList = new List<MonsterSpawnData> ();
+        public Dictionary<int, Monster> Monsters = new Dictionary<int, Monster>(); // 몬스터 목록
+        public Dictionary<int, MonsterData> MonsterDataDic = new Dictionary<int, MonsterData> (); // 몬스터 정보(파싱받은 데이터)
+        public List<MonsterSpawnData> MonsterSpawnDateList = new List<MonsterSpawnData> ();       // 몬스터 스폰 정보(파싱받은 데이터)
 
-        private ushort _monsterId = 0;
-
-        public bool IsSpawning = false;
-
-        private const string MonsterDataPath = "MonsterData.csv";
-        private const string MonsterSpawnDataPath = "MonsterSpawnData.csv";
+        private ushort _monsterId = 0; // 몬스터 id
+        private const string MonsterDataPath = "MonsterData.csv";           // 몬스터 정보 파싱 파일명
+        private const string MonsterSpawnDataPath = "MonsterSpawnData.csv"; // 몬스터 스폰 정보 파싱 파일명
 
         // 몬스터 정보 초기화
         public void InitData()
@@ -174,11 +158,10 @@ namespace Server
             MonsterSpawnDateList = LoadMonsterSpawnData(MonsterSpawnDataPath);
 
             foreach (MonsterSpawnData spawnData in MonsterSpawnDateList)
-            {
                 Spawn(spawnData);
-            }
         }
 
+        // 몬스터 추가
         public void Add(Monster monster)
         {
             _monsterId++;
@@ -187,6 +170,7 @@ namespace Server
             SpatialGrid.Instance.AddMonster(monster);
         }
 
+        // 몬스터 업데이트
         public void Update(float deltaTime)
         {
             if (SessionManager.Instance.Sessions.Count == 0)
@@ -212,13 +196,11 @@ namespace Server
             SessionManager.Instance.BroadcastAll(monsterSegment); 
         }
 
+        // 몬스터 스폰
         public void Spawn(MonsterSpawnData spawnData)
         {
             Monster monster = new Monster(spawnData);
-
             Add(monster);
-
-            Console.WriteLine($"Monster Spawned: {_monsterId}  {MonsterDataDic[monster.Type].Name}");
         }
     }
 }

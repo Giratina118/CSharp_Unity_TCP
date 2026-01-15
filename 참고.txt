@@ -7,19 +7,3 @@ https://stopresent.github.io/server/Serialization/
 https://lhuhyeon.github.io/posts/CSharp-Serialization-4/
 
 https://velog.io/@gkqls813/61315-GAMELAB-.Net-Core-%EC%8A%A4%ED%84%B0%EB%94%94-2%ED%9A%8C%EC%B0%A8-%EC%86%8C%EC%BC%93-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D#serialization-3
-
-
-
-            /*
-            Vector3 d = p1 - p0;
-            Vector3 m = p0 - center;
-
-            float b = Vector3.Dot(m, d);
-            float c = Vector3.Dot(m, m) - radius * radius;
-
-            if (c > 0f && b > 0f)
-                return false;
-
-            float discr = b * b - Vector3.Dot(d, d) * c;
-            return discr >= 0f;
-            */
