@@ -29,6 +29,17 @@ public class ChatManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            if (!ChatInputField.interactable)
+                ChatInputField.interactable = true;
+            else
+                ChatInputField.interactable = false;
+        }
+    }
+
     // 채팅 전송
     public void SendChatting()
     {
@@ -55,29 +66,20 @@ public class ChatManager : MonoBehaviour
             return;
         _onChat = false;
 
-        if (ChatContent.text == "")
-            ChatContent.text += _chatTemp;
-        else
-            ChatContent.text += "\n" + _chatTemp;
+        if (ChatContent.text == "") ChatContent.text += _chatTemp;
+        else                        ChatContent.text += "\n" + _chatTemp;
 
-        // 채팅창 화면 업데이트를 위함
-        StartCoroutine(ScrollToBottom());
-
-        Canvas.ForceUpdateCanvases();
+        StartCoroutine(ScrollToBottom()); // 채팅창 아래로 내리기
+        Canvas.ForceUpdateCanvases();     // Canvas 강제 갱신
         ChatScrollbar.value = 0;
     }
 
     // 채팅창 아래로 내리기(가장 최근 글이 맨 밑에 보이도록)
     private IEnumerator ScrollToBottom()
     {
-        // 레이아웃이 확실히 갱신되도록 한 프레임 대기
-        yield return null;
-
-        // Canvas 강제 갱신
-        Canvas.ForceUpdateCanvases();
-
-        // ScrollRect 맨 아래
-        ChatScrollbar.value = 0.0f;
+        yield return null;            // 레이아웃이 확실히 갱신되도록 한 프레임 대기
+        Canvas.ForceUpdateCanvases(); // Canvas 강제 갱신
+        ChatScrollbar.value = 0.0f;   // ScrollRect 맨 아래
     }
 
     // 채팅 내역 적기

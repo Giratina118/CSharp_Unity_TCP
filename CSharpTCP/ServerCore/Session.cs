@@ -53,7 +53,6 @@ namespace ServerCore
         RecvBuffer _recvBuffer = new RecvBuffer(2048);
 
         object _lock = new object();
-        //Queue<byte[]> _sendQueue = new Queue<byte[]>(); // send 모아 처리하기
         Queue<ArraySegment<byte>> _sendQueue = new Queue<ArraySegment<byte>>(); // send 모아 처리하기
 
         List<ArraySegment<byte>> _pendinglist = new List<ArraySegment<byte>>();
@@ -100,7 +99,6 @@ namespace ServerCore
             _socket.Close();
         }
 
-        #region 네트워크 통신 수신
         // 등록
         void RegisterRecv()
         {
@@ -156,9 +154,7 @@ namespace ServerCore
             else
                 Disconnect();
         }
-        #endregion
 
-        #region 네트워크 통신 송신
         // 등록
         void RegisterSend()
         {
@@ -200,6 +196,5 @@ namespace ServerCore
                     Disconnect();
             }
         }
-        #endregion
     }
 }

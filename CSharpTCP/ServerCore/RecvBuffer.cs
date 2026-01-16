@@ -8,7 +8,7 @@ namespace ServerCore
 {
     public class RecvBuffer
     {
-        ArraySegment<byte> _buffer;
+        ArraySegment<byte> _buffer; // 받은 데이터
         int _readPos;  // 작업 진행도 표시(받아온 byte 중 얼마나 작업했는지)
         int _writePos; // 받아온 byte 위치 표시
 

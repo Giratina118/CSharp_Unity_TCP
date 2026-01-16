@@ -85,36 +85,35 @@ namespace Client
         {
             CreateRemovePacket crPacket = new CreateRemovePacket();
             crPacket.Read(buffer);
-
-            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.id}, messageType : {crPacket.MessageType}\n");
+            Debug.Log($"PlayerCreateRemovePacket | ID: {crPacket.Id}, messageType : {crPacket.MessageType}\n");
 
             switch ((ushort)crPacket.MessageType)
             {
                 case (ushort)MsgType.CreatePlayer:
                     // 플레이어 아이디로 특정 플레이어 생성
                     ObjectInfo playerInfo = new ObjectInfo();
-                    playerInfo.Id = crPacket.id;
+                    playerInfo.Id = crPacket.Id;
                     PlayerManager.Instance.OnTriggerCreateCharacter(playerInfo);
                     break;
 
                 case (ushort)MsgType.RemovePlayer:
                     // 플레이어 아이디로 특정 플레이어의 오브젝트 삭제
-                    PlayerManager.Instance.OnTriggerRemoveExitCharacter(crPacket.id);
+                    PlayerManager.Instance.OnTriggerRemoveExitCharacter(crPacket.Id);
                     break;
 
                 case (ushort)MsgType.CreateMissile:
                     // 플레이어 아이디로 생성할 미사일 위치, 방향 결정
-                    MissileManager.Instance.OnTriggerCreateMissile(crPacket.id);
+                    MissileManager.Instance.OnTriggerCreateMissile(crPacket.Id);
                     break;
 
                 case (ushort)MsgType.RespawnMonster:
                     // 몬스터 리스폰(켜기)
-                    MonsterManager.Instance.OnTriggerRespawn(crPacket.id);
+                    MonsterManager.Instance.OnTriggerRespawn(crPacket.Id);
                     break;
 
                 case (ushort)MsgType.RemoveMonster:
                     // 몬스터 끄기
-                    MonsterManager.Instance.OnTriggerRemoveMonster(crPacket.id);
+                    MonsterManager.Instance.OnTriggerRemoveMonster(crPacket.Id);
                     break;
 
                 case (ushort)MsgType.DieMe:
@@ -162,13 +161,10 @@ namespace Client
             MovePacket movePacket = new MovePacket();
             movePacket.Read(buffer);
 
-            //Debug.Log($"move | msgType: {movePacket.messageType}, ID: {movePacket.objInfo.id}, pos: {movePacket.objInfo.position}, rot: {movePacket.objInfo.rotation}\n");
             long playerId = movePacket.ObjInfo.Id;
             switch (movePacket.MessageType)
             {
                 case (ushort)MsgType.MovePlayer:
-                    //Debug.Log($"내 id: {ClientProgram.Instance.ClientId},  보낸 사람 id: {playerId}");
-
                     // 플레이어 아이디로 특정 플레이어의 위치 정보 갱신
                     if (PlayerManager.Instance.PlayerObjDic[playerId] != null)
                         PlayerManager.Instance.PlayerObjDic[playerId].OnTriggerUpdateOtherPos(movePacket.ObjInfo);
@@ -198,42 +194,42 @@ namespace Client
             DamagePacket damagePacket = new DamagePacket();
             damagePacket.Read(buffer);
 
-            switch ((ushort)damagePacket.messageType)
+            switch ((ushort)damagePacket.MessageType)
             {
                 case (ushort)MsgType.DamagePlayer:
                     // 체력 감소, 공격자가 본인이면 데미지 표시 띄우기, 피해자가 본인이면 빨간 이펙트 띄우기
                     PlayerController hitPlayer;
-                    if (damagePacket.hitId == ClientProgram.Instance.ClientId)
+                    if (damagePacket.HitId == ClientProgram.Instance.ClientId)
                     {
                         // 본인 체력 감소
-                        hitPlayer = PlayerManager.Instance.PlayerObjDic[damagePacket.hitId];
-                        hitPlayer.OnTriggerUpdateHpbar((int)damagePacket.curHp - (int)damagePacket.damage);
+                        hitPlayer = PlayerManager.Instance.PlayerObjDic[damagePacket.HitId];
+                        hitPlayer.OnTriggerUpdateHpbar((int)damagePacket.CurHp - (int)damagePacket.Damage);
                         UIManager.Instance.OnTriggerDamaged();
                     }
-
                     break;
 
                 case (ushort)MsgType.DamageMonster:
                     // 체력 감소, 공격자가 본인이면 데미지 표시 띄우기
-                    MonsterManager.Instance.MonsterObjDic[damagePacket.hitId].OnTriggerHit(damagePacket.damage, damagePacket.curHp, damagePacket.maxHp);
+                    MonsterManager.Instance.MonsterObjDic[damagePacket.HitId].OnTriggerHit(damagePacket.Damage, damagePacket.CurHp, damagePacket.MaxHp);
                     break;
 
                 case (ushort)MsgType.HealPlayer:
                     // 체력 회복
-                    PlayerManager.Instance.PlayerObjDic[ClientProgram.Instance.ClientId].OnTriggerUpdateHpbar(damagePacket.curHp);
+                    PlayerManager.Instance.PlayerObjDic[ClientProgram.Instance.ClientId].OnTriggerUpdateHpbar(damagePacket.CurHp);
                     break;
             }
         }
 
+        // Score 패킷 받음
         public void OnRecvScore(ArraySegment<byte> buffer)
         {
             ScorePacket scorePacket = new ScorePacket();
             scorePacket.Read(buffer);
 
-            if (scorePacket.playerScore.Count == 1 && scorePacket.playerScore[0].Name.Equals("")) // 자기 점수 업데이트
-                UIManager.Instance.OnTriggerUpdateMyScore(scorePacket.playerScore[0].Score);
+            if (scorePacket.PlayerScore.Count == 1 && scorePacket.PlayerScore[0].Name.Equals("")) // 자기 점수 업데이트
+                UIManager.Instance.OnTriggerUpdateMyScore(scorePacket.PlayerScore[0].Score);
             else
-                UIManager.Instance.OnTriggerUpdateScoreBoard(scorePacket.playerScore); // top5 점수보드 업데이트
+                UIManager.Instance.OnTriggerUpdateScoreBoard(scorePacket.PlayerScore); // top5 점수보드 업데이트
         }
     }
 }

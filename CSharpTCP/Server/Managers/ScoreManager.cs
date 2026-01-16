@@ -12,12 +12,14 @@ namespace Server
         public static ScoreManager Instance { get; } = new ScoreManager();
 
         public Dictionary<long, int> ScoreDic = new Dictionary<long, int>(); // 점수 목록
+
         private List<PlayerScore> top5List = new List<PlayerScore>();        // 현재 top5 점수 리스트
+        private static readonly HttpClient client = new HttpClient();
 
         // 점수 전송
         public void UpdateScore()
         {
-            ScorePacket scorePacket = new ScorePacket() { playerScore = top5List };
+            ScorePacket scorePacket = new ScorePacket() { PlayerScore = top5List };
             ArraySegment<byte> scoreSegment = scorePacket.Write();
             SessionManager.Instance.BroadcastAll(scoreSegment);
         }
@@ -52,7 +54,7 @@ namespace Server
             List<PlayerScore> selfScoreList = new List<PlayerScore>();
             selfScoreList.Add(selfScore);
 
-            ScorePacket scorePacket = new ScorePacket() { playerScore = selfScoreList };
+            ScorePacket scorePacket = new ScorePacket() { PlayerScore = selfScoreList };
             ArraySegment<byte> scoreSegment = scorePacket.Write();
             SessionManager.Instance.Sessions[id].Send(scoreSegment);
         }
@@ -84,8 +86,6 @@ namespace Server
                     AddScore(inTop5Id, 0);
             }
         }
-
-        private static readonly HttpClient client = new HttpClient();
 
         // DB에 최종 점수 저장
         public async Task UpdateRequest(long id, int score)

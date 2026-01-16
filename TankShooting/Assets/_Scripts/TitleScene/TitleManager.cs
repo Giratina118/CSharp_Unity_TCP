@@ -28,19 +28,20 @@ public class TitleManager : MonoBehaviour
     
     // 로그인 UI
     public GameObject LoginBG;
-    public TMP_InputField LoginEmail;
-    public TMP_InputField LoginPassword;
+    public TMP_InputField LoginEmail;    // 이메일 입력
+    public TMP_InputField LoginPassword; // 패스워드 입력
 
     // 회원가입 UI
     public GameObject RegisterBG;
-    public TMP_InputField RegisterName;
-    public TMP_InputField RegisterEmail;
-    public TMP_InputField RegisterPassword;
+    public TMP_InputField RegisterName;     // 닉네임 입력
+    public TMP_InputField RegisterEmail;    // 이메일 입력
+    public TMP_InputField RegisterPassword; // 패스워드 입력
 
+    // 요청 유형
     enum RequestType
     {
-        Login = 1,
-        Register,
+        Login = 1, // 로그인
+        Register,  // 회원가입
     }
 
     // 로그인 요청
@@ -90,6 +91,7 @@ public class TitleManager : MonoBehaviour
 
         RegisterName.text = RegisterEmail.text = RegisterPassword.text = "";
     }
+
 
     // 시작 화면
     // 시작하기 버튼

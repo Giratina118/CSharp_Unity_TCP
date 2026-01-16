@@ -13,9 +13,9 @@ namespace Server
     public class GridCell
     {   // c# HashSet -> C++ unordered_set
         // 해당 칸에 들어있는 몬스터, 플레이어 집합
-        public HashSet<Monster> Monsters = new HashSet<Monster>();
-        public HashSet<ClientSession> Players = new HashSet<ClientSession>();
-        public HashSet<Structure> Structures = new HashSet<Structure>();
+        public HashSet<Monster> Monsters = new HashSet<Monster>(); // 몬스터 셀 저장
+        public HashSet<ClientSession> Players = new HashSet<ClientSession>(); // 플레이어 셀 저장
+        public HashSet<Structure> Structures = new HashSet<Structure>(); // 건물 셀 저장
     }
 
     // 셀로 나눠진 월드 전체 공간
@@ -31,7 +31,7 @@ namespace Server
             _cellSize = cellSize;
         }
 
-        // 월드 좌표 → 셀 좌표
+        // 월드 좌표 -> 셀 좌표
         private Vector2Int ToCell(Vector3 pos)
         {
             int x = (int)MathF.Floor(pos.X / _cellSize);
@@ -43,7 +43,6 @@ namespace Server
         public void AddMonster(Monster monster)
         {
             // 셀 찾기, 없으면 추가 후 몬스터 등록
-            Console.WriteLine($"위치: {monster.Pos},  셀: {ToCell(monster.Pos)}");
             GetOrCreateCell(ToCell(monster.Pos)).Monsters.Add(monster);
         }
 
@@ -51,14 +50,13 @@ namespace Server
         public void AddPlayer(ClientSession player)
         {
             // 셀 찾기, 없으면 추가 후 플레이어 등록
-            GetOrCreateCell(ToCell(player.Info.position)).Players.Add(player);
+            GetOrCreateCell(ToCell(player.Info.Position)).Players.Add(player);
         }
 
         // 건물 셀에 등록
         public void AddStructure(Structure structure)
         {
             // 셀 찾기, 없으면 추가 후 건물 등록
-            Console.WriteLine($"위치: {structure.Pos},  셀: {ToCell(structure.Pos)}");
             GetOrCreateCell(ToCell(structure.Pos)).Structures.Add(structure);
         }
 
@@ -79,7 +77,7 @@ namespace Server
         // 플레이어 제거
         public void RemovePlayer(ClientSession player)
         {
-            Vector2Int cell = ToCell(player.Info.position); // 현재 위치 기준 셀
+            Vector2Int cell = ToCell(player.Info.Position); // 현재 위치 기준 셀
 
             if (_cells.TryGetValue(cell, out GridCell gridCell))
             {
@@ -98,11 +96,8 @@ namespace Server
             Vector2Int prev = ToCell(from);
             Vector2Int curr = ToCell(to);
 
-            if (_cells.TryGetValue(prev, out var prevCell))
-                result.Add(prevCell); // 이전 위치 셀
-
-            if (_cells.TryGetValue(curr, out var currCell))
-                result.Add(currCell); // 현재 위치 셀
+            if (_cells.TryGetValue(prev, out var prevCell)) result.Add(prevCell); // 이전 위치 셀
+            if (_cells.TryGetValue(curr, out var currCell)) result.Add(currCell); // 현재 위치 셀
 
             return result.ToList();
         }
@@ -111,7 +106,7 @@ namespace Server
         public void UpdatePlayer(ClientSession player, Vector3 prevPos)
         {
             Vector2Int prev = ToCell(prevPos);
-            Vector2Int curr = ToCell(player.Info.position);
+            Vector2Int curr = ToCell(player.Info.Position);
 
             if (prev == curr) // 같은 셀이면 X, 셀이 바뀌었을 때만 갱신
                 return;

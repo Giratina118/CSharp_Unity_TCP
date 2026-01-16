@@ -34,7 +34,7 @@ namespace ServerCore
 
     public class SendBuffer
     {
-        byte[] _buffer;
+        byte[] _buffer; // 보낼 데이터
         int _usedSize = 0; // 버퍼에서 얼마나 보냈는지(RecvBuffer의 WritePos같은 역할)
 
         // 남은 버퍼 공간(유효 공간)

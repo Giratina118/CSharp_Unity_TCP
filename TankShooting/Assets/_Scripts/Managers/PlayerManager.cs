@@ -55,7 +55,7 @@ public class PlayerManager : MonoBehaviour
 
         // 다른 플레이어의 오브젝트를 모두 생성한 후에 플레이어의 오브젝트를 모두에게 생성하도록 요청
         CreateRemovePacket crPacket = new CreateRemovePacket()
-        { id = ClientProgram.Instance.ClientId, MessageType = (ushort)MsgType.CreatePlayer };
+        { Id = ClientProgram.Instance.ClientId, MessageType = (ushort)MsgType.CreatePlayer };
         ArraySegment<byte> segment = crPacket.Write();
         ClientProgram.Instance.Connector.CurrentSession.Send(segment);
 

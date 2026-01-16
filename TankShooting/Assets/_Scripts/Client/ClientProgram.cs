@@ -24,18 +24,18 @@ namespace Client
     {
         public static ClientProgram Instance { get; private set; }
 
-        public Connector Connector;
+        public GameObject loadingScreen; // 로딩 화면
+
+        public Connector Connector; // 커넥터
         public long ClientId;   // 본인 id
         public string NickName; // 이름
         public int Score = 0;   // 점수
 
-        private bool _isConnect = false;  // 서버 연결 여부
         private bool _isGameOver = false; // 게임 오버 여부
-
-        private string  _host;
-        private IPHostEntry _ipHost;
-        private IPAddress _ipAddr;
-        private IPEndPoint _endPoint;
+        private string  _host;       // 호스트
+        private IPHostEntry _ipHost; // 호스트 ip
+        private IPAddress _ipAddr;   // ip 주소
+        private IPEndPoint _endPoint;// ip 포트 접근
 
         void Awake()
         {
@@ -91,14 +91,13 @@ namespace Client
             NickName = name;
             ClientId = id;
 
+            loadingScreen.SetActive(true);
+            StartCoroutine(LoadingScreen());
             SceneManager.LoadSceneAsync(1);
-
-            Debug.Log(_host);
 
             // 커넥터 생성
             Connector = new Connector();
             Connector.Connect(_endPoint, () => { return new ServerSession(); });
-            _isConnect = true;
         }
 
         // 서버 연결 해제
@@ -113,16 +112,23 @@ namespace Client
                 camera.transform.parent = new GameObject("CameraParent").transform;
 
                 Connector.CurrentSession.Disconnect();
-                _isConnect = false;
 
                 // 점수창
                 UIManager.Instance.OpenResultScreen();
             }
         }
 
+        // 게임 오버
         public void GameOver()
         {
             _isGameOver = true;
+        }
+
+        // 로딩화면
+        IEnumerator LoadingScreen()
+        {
+            yield return new WaitForSecondsRealtime(2.0f);
+            loadingScreen.SetActive(false);
         }
     }
 }

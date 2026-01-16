@@ -27,8 +27,8 @@ namespace Server
             float shortTimer = 0.0f; // 타이머(자주 전송)
             float frameTime = 0.0f;  // 프레임 주기
 
-            int longTimer = 0;
-            int longTimerRate = 10;
+            int longTimer = 0; // 타이머(덜 자주 전송)
+            int longTimerRate = 10; // 전송 주기(덜 자주 전송)
 
             var stopwatch = Stopwatch.StartNew();
             long lastTimeMilliSec = stopwatch.ElapsedMilliseconds;
@@ -57,9 +57,7 @@ namespace Server
                 while(longTimer >= longTimerRate)
                 {
                     longTimer -= longTimerRate;
-
-                    // 점수 업데이트
-                    ScoreManager.Instance.UpdateScore();
+                    ScoreManager.Instance.UpdateScore(); // 점수 업데이트
                 }
 
                 await Task.Delay(SleepMilliSec);

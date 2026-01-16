@@ -22,10 +22,10 @@ namespace Server
             Console.WriteLine("add");
             lock (_lock)
             {
-                Sessions.Add(session.Info.id, session); // id 지정하고 딕셔너리에 추가
+                Sessions.Add(session.Info.Id, session); // id 지정하고 딕셔너리에 추가
 
                 // 연결 완료 신호 보냄
-                PlayerInfoOk packet = new PlayerInfoOk() { playerId = session.Info.id };
+                PlayerInfoOk packet = new PlayerInfoOk() { PlayerId = session.Info.Id };
                 ArraySegment<byte> segment = packet.Write(); // 직렬화
 
                 if (segment != null)
@@ -36,12 +36,12 @@ namespace Server
                 SendCreateStructure(session); // 건물들 생성하라고 전송
 
                 // 입장 알림 보내기
-                ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 입장하셨습니다." };
+                ChatPacket chatPacket = new ChatPacket() { PlayerId = -1, Chat = $"{session.Name}님이 입장하셨습니다." };
                 ArraySegment<byte> chatSegment = chatPacket.Write();
                 BroadcastAll(chatSegment);
 
                 SpatialGrid.Instance.AddPlayer(session); // 충돌 처리를 위함
-                ScoreManager.Instance.AddScore(session.Info.id, 0); // 점수 초기화
+                ScoreManager.Instance.AddScore(session.Info.Id, 0); // 점수 초기화
             }
         }
 
@@ -50,48 +50,48 @@ namespace Server
         {
             // 먼저 접속해 있던 플레이어의 오브젝트들 생성하라고 전송
             List<ObjectInfo> playerInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
-            foreach (ClientSession item in Sessions.Values)
+            foreach (ClientSession item in Sessions.Values) // 정보 취합
             {
-                if (item.Info.id == session.Info.id)
+                if (item.Info.Id == session.Info.Id)
                     continue;
 
-                ObjectInfo infoTemp = new ObjectInfo() { objType = (ushort)ObjType.Player, id = item.Info.id, position = item.Info.position, rotation = item.Info.rotation };
+                ObjectInfo infoTemp = new ObjectInfo() { ObjType = (ushort)ObjType.Player, Id = item.Info.Id, Position = item.Info.Position, Rotation = item.Info.Rotation };
                 playerInfoList.Add(infoTemp);
             }
-            ObjListPacket crAllPacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllPlayer, Infos = playerInfoList };
+            ObjListPacket crAllPacket = new ObjListPacket() { MessageType = (ushort)MsgType.CreateAllPlayer, Infos = playerInfoList };
             ArraySegment<byte> crSegment = crAllPacket.Write();
-            session.Send(crSegment);
+            session.Send(crSegment); // 전송
         }
 
         // 몬스터 오브젝트 생성하라고 전송
         public void SendCreateMonster(ClientSession session)
         {
             List<ObjectInfo> monsterInfoList = new List<ObjectInfo>(); // 먼저 접속해 있던 플레이어들의 정보(id, 위치)
-            foreach (int item in MonsterManager.Instance.Monsters.Keys)
+            foreach (int item in MonsterManager.Instance.Monsters.Keys) // 정보 취합
             {
                 Monster sendMonster = MonsterManager.Instance.Monsters[item];
-                ObjectInfo infoTemp = new ObjectInfo() { objType = sendMonster.Type, id = item, position = sendMonster.Pos, rotation = sendMonster.Rot };
+                ObjectInfo infoTemp = new ObjectInfo() { ObjType = sendMonster.Type, Id = item, Position = sendMonster.Pos, Rotation = sendMonster.Rot };
                 monsterInfoList.Add(infoTemp);
             }
-            ObjListPacket createAllMonsterPacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllMonster, Infos = monsterInfoList };
+            ObjListPacket createAllMonsterPacket = new ObjListPacket() { MessageType = (ushort)MsgType.CreateAllMonster, Infos = monsterInfoList };
             ArraySegment<byte> crMonsterSegment = createAllMonsterPacket.Write();
-            session.Send(crMonsterSegment);
+            session.Send(crMonsterSegment); // 전송
         }
 
         // 건물들 생성하라고 전송
         public void SendCreateStructure(ClientSession session)
         {
             List<ObjectInfo> structureInfoList = new List<ObjectInfo>(); // 건물들 정보
-            foreach (Structure item in StructureManager.Instance.Structures)
+            foreach (Structure item in StructureManager.Instance.Structures) // 정보 취합
             {
-                ObjectInfo infoTemp = new ObjectInfo() { objType = (ushort)ObjType.Structure, id = item.Type, position = item.Pos, rotation = Vector3.Zero };
+                ObjectInfo infoTemp = new ObjectInfo() { ObjType = (ushort)ObjType.Structure, Id = item.Type, Position = item.Pos, Rotation = Vector3.Zero };
                 structureInfoList.Add(infoTemp);
                 Console.WriteLine($"{(ushort)ObjType.Structure},  {item.Type},  {item.Pos}");
             }
-            ObjListPacket createAllStructurePacket = new ObjListPacket() { messageType = (ushort)MsgType.CreateAllStructure, Infos = structureInfoList };
+            ObjListPacket createAllStructurePacket = new ObjListPacket() { MessageType = (ushort)MsgType.CreateAllStructure, Infos = structureInfoList };
             ArraySegment<byte> crStructureSegment = createAllStructurePacket.Write();
             Console.WriteLine($"{crStructureSegment.Count}");
-            session.Send(crStructureSegment);
+            session.Send(crStructureSegment); // 전송
         }
 
         // 종료된 세션 제거
@@ -99,11 +99,11 @@ namespace Server
         {
             lock (_lock)
             {
-                if (Sessions.ContainsKey(session.Info.id))
-                    Sessions.Remove(session.Info.id);
+                if (Sessions.ContainsKey(session.Info.Id))
+                    Sessions.Remove(session.Info.Id);
 
                 // 퇴장 알림 보내기
-                ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{session.Name}님이 퇴장하셨습니다." };
+                ChatPacket chatPacket = new ChatPacket() { PlayerId = -1, Chat = $"{session.Name}님이 퇴장하셨습니다." };
                 ArraySegment<byte> chatSegment = chatPacket.Write();
                 BroadcastAll(chatSegment);
             }
@@ -126,7 +126,7 @@ namespace Server
             {
                 foreach (var session in Sessions.Values)
                 {
-                    if (session.Info.id == targetId)
+                    if (session.Info.Id == targetId)
                         continue;
 
                     session.Send(data);

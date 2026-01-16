@@ -12,24 +12,24 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
-    public GameObject DmamgedImage;  // 데미지 받았을 때 빨간 배경
-    public GameObject ResultScreen;  // 게임 결과 창
-    public GameObject RankingScreen; // 점수 창
+    public GameObject DmamgedImage;   // 데미지 받았을 때 빨간 배경
+    public GameObject ResultScreen;   // 게임 결과 창
+    public GameObject RankingScreen;  // 점수 창
 
-    public Button DisconnectButton;  // 서버 연결 해제 버튼
-    public Button NextButton;        // 넥스트 버튼(결과창)
-    public Button ToTitleButton;     // 타이틀 버튼(점수창)
+    public Button DisconnectButton;   // 서버 연결 해제 버튼
+    public Button NextButton;         // 넥스트 버튼(결과창)
+    public Button ToTitleButton;      // 타이틀 버튼(점수창)
 
-    public TMP_Text NameText;        // 이름 텍스트
-    public TMP_Text MyScoreText;     // 자기 점수 텍스트 
-    public TMP_Text ScoreBoardName;  // 점수판 top5 이름
-    public TMP_Text ScoreBoard;      // 점수판 top5 점수
-    public TMP_Text ScoreResult;     // 최종 점수(결과창)
+    public TMP_Text NameText;         // 이름 텍스트
+    public TMP_Text MyScoreText;      // 자기 점수 텍스트 
+    public TMP_Text ScoreBoardName;   // 점수판 top5 이름
+    public TMP_Text ScoreBoard;       // 점수판 top5 점수
+    public TMP_Text ScoreResult;      // 최종 점수(결과창)
 
-    public TMP_Text RankingRankText;  // 랭킹 출력  순위
-    public TMP_Text RankingNameText;  // 랭킹 출력  이름
-    public TMP_Text RankingScoreText; // 랭킹 출력  점수
-    public TMP_Text RankingRateText;  // 랭킹 출력  백분위
+    public TMP_Text RankingRankText;  // 랭킹 출력 - 순위
+    public TMP_Text RankingNameText;  // 랭킹 출력 - 이름
+    public TMP_Text RankingScoreText; // 랭킹 출력 - 점수
+    public TMP_Text RankingRateText;  // 랭킹 출력 - 백분위
 
     private int _myScoreTemp = 0; // 자기 점수 임시 저장
     private List<PlayerScore> _scoresTemp = new List<PlayerScore>(); // top5 점수 임시 저장
@@ -57,6 +57,7 @@ public class UIManager : MonoBehaviour
         UpdateScoreBoard();
     }
 
+    // 데미지 경고 트리거
     public void OnTriggerDamaged()
     {
         _isHit = true;
@@ -109,10 +110,7 @@ public class UIManager : MonoBehaviour
         _scoresTemp.Clear();
 
         foreach (PlayerScore score in scores)
-        {
             _scoresTemp.Add(score);
-            Debug.Log($"{score.Id}  {score.Name}  {score.Score}");
-        }
         
         _onUpdateScoreBoard = true;
     }
@@ -148,7 +146,7 @@ public class UIManager : MonoBehaviour
         if (!_onUpdateMyScore)
             return;
 
-        MyScoreText.text = _myScoreTemp.ToString();
+        MyScoreText.text = $"Score: {_myScoreTemp}";
         ClientProgram.Instance.Score = _myScoreTemp;
     }
 
@@ -161,7 +159,7 @@ public class UIManager : MonoBehaviour
     [Serializable]
     public class MemberData
     {
-        public long id;
+        public long id; // 웹서버와 대소문자 통일
         public string memberName;
         public int memberScore;
     }
@@ -175,21 +173,19 @@ public class UIManager : MonoBehaviour
         yield return www.SendWebRequest();
         int totalCount = int.Parse(www.downloadHandler.text);
 
-        url = "http://localhost:8081/member/rank";
+        url = "http://localhost:8081/member/rank"; // 랭킹
         www = UnityWebRequest.Get(url);
         yield return www.SendWebRequest();
 
-        // 자기 점수가 업데이트 되는 것보다 점수판이 띄워지는게 빨라서 이번 점수가 반영되지 않은 상태의 점수판이 보여짐
-        
         if (www.result == UnityWebRequest.Result.Success)
         {
             string json = www.downloadHandler.text;
             string newJson = "{ \"list\": " + json + "}";
             MemberListWrapper rankingData = JsonUtility.FromJson<MemberListWrapper>(newJson);
 
-            int rank = 1;
+            int rank = 1; 
             RankingRankText.text = RankingNameText.text = RankingScoreText.text = RankingRateText.text = "";
-            foreach (var member in rankingData.list)
+            foreach (var member in rankingData.list) // top10 출력
             {
                 RankingRankText.text += $"{rank}\n";
                 RankingNameText.text += $"{member.memberName}\n";

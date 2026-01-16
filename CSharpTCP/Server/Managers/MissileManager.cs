@@ -19,12 +19,17 @@ namespace Server
         public bool IsRemoved = false;// 충돌되어 제거된 상태인지
 
         public DateTime SpawnTime;    // 생성 시각
-        public float LifeTime = 10.0f;// 생명 시간
+        public float LifeTime = 10.0f;// 생존 시간
 
         private float _speed = 15.0f; // 미사일 속도
 
-        public bool IsLifeTimeOver => (DateTime.UtcNow - SpawnTime).TotalSeconds >= LifeTime;
+        // 생존 시간 끝났는지
+        public bool IsLifeTimeOver()
+        {
+            return (DateTime.UtcNow - SpawnTime).TotalSeconds >= LifeTime;
+        }
 
+        // 업데이트(위치)
         public void Update(float deltaTime)
         {
             Vector3 prev = Pos;
@@ -36,36 +41,37 @@ namespace Server
     {
         public static MissileManager Instance { get; } = new MissileManager();
 
-        public List<Missile> Missiles = new List<Missile>();
+        public List<Missile> Missiles = new List<Missile>(); // 미사일 리스트
 
-        const float PI = 3.141592f;
-        private Vector3 _muzzle = new Vector3(0.0f, 0.5f, 0.0f);
+        const float PI = 3.141592f; // 원주율
+        private Vector3 _muzzle = new Vector3(0.0f, 0.5f, 0.0f); // 포구
 
+        // 업데이트(이동, 접촉, 삭제)
         public void Update(float deltaTime)
         {
             for (int i = Missiles.Count - 1; i >= 0; i--)
             {
                 Missile missile = Missiles[i];
 
-                if (missile.IsLifeTimeOver || missile.IsRemoved)
+                if (missile.IsLifeTimeOver() || missile.IsRemoved) // 생존 시간 다 된건 삭제
                 {
                     Missiles.RemoveAt(i);
                     continue;
                 }
 
                 Vector3 prevPos = missile.Pos;
-                missile.Update(deltaTime);
+                missile.Update(deltaTime); // 개별 업데이트(이동)
 
-                CollisionSystem.Instance.MissileCollisionCheck(prevPos, missile.Pos, missile);
+                CollisionSystem.Instance.MissileCollisionCheck(prevPos, missile.Pos, missile); // 접촉 체크
             }
         }
 
         // 새 미사일 추가
         public void Add(ObjectInfo Info)
         {
-            Console.WriteLine($"위치: {Info.position + _muzzle},  방향: {Info.rotation}, {{{MathF.Sin(Info.rotation.Y / 180.0f * PI)}, {0}, {MathF.Cos(Info.rotation.Y / 180.0f * PI)}}}");
-            Vector3 dir = new Vector3(MathF.Sin(Info.rotation.Y / 180.0f * PI), 0.0f, MathF.Cos(Info.rotation.Y / 180.0f * PI));
-            Missile newMissile = new Missile() { ShooterId = Info.id, CreatedPos = Info.position + _muzzle, Pos = Info.position + _muzzle, Dir = dir, SpawnTime = DateTime.UtcNow };
+            Console.WriteLine($"위치: {Info.Position + _muzzle},  방향: {Info.Rotation}, {{{MathF.Sin(Info.Rotation.Y / 180.0f * PI)}, {0}, {MathF.Cos(Info.Rotation.Y / 180.0f * PI)}}}");
+            Vector3 dir = new Vector3(MathF.Sin(Info.Rotation.Y / 180.0f * PI), 0.0f, MathF.Cos(Info.Rotation.Y / 180.0f * PI));
+            Missile newMissile = new Missile() { ShooterId = Info.Id, CreatedPos = Info.Position + _muzzle, Pos = Info.Position + _muzzle, Dir = dir, SpawnTime = DateTime.UtcNow };
             Missiles.Add(newMissile);
         }
 

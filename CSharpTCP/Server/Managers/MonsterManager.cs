@@ -59,6 +59,7 @@ namespace Server
             _spawnPos = Pos;
         }
         
+        // 업데이트(이동/리스폰)
         public void Update(float deltaTime)
         {
             if (IsDie) Respawn(deltaTime); // 죽은 상태면 리스폰 대기
@@ -75,7 +76,7 @@ namespace Server
                 IsDie = false;
 
                 // 모든 클라에게 리스폰 전송
-                CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RespawnMonster, id = Id };
+                CreateRemovePacket monsterPacket = new CreateRemovePacket() { MessageType = (ushort)MsgType.RespawnMonster, Id = Id };
                 ArraySegment<byte> monsterSegment = monsterPacket.Write();
                 SessionManager.Instance.BroadcastAll(monsterSegment);
             }
@@ -85,7 +86,7 @@ namespace Server
         public void Move(float deltaTime)
         {
             _moveTimer += deltaTime;
-            if (_moveTimer > _moveInterval)
+            if (_moveTimer > _moveInterval) // 일정 시간마다 목적지 재설정
             {
                 _moveTimer = 0.0f;
 
@@ -97,9 +98,7 @@ namespace Server
             }
 
             float distance = Vector3.Distance(Pos, _targetPos);
-
-            // 목적지에 다다르면 이동X
-            if (distance > 0.1f)
+            if (distance > 0.1f) // 목적지에 다다르면 이동X
             {
                 _moveDir = Vector3.Normalize(_targetPos - Pos);
                 Pos += _moveDir * deltaTime * Speed;
@@ -130,7 +129,7 @@ namespace Server
             CurHP = MaxHP;
 
             // 모든 클라에게 소멸 전송
-            CreateRemovePacket monsterPacket = new CreateRemovePacket() { messageType = (ushort)MsgType.RemoveMonster, id = Id };
+            CreateRemovePacket monsterPacket = new CreateRemovePacket() { MessageType = (ushort)MsgType.RemoveMonster, Id = Id };
             ArraySegment<byte> monsterSegment = monsterPacket.Write();
             SessionManager.Instance.BroadcastAll(monsterSegment);
 
@@ -186,12 +185,12 @@ namespace Server
                 SpatialGrid.Instance.UpdateMonster(monster, prev);
 
                 // 몬스터 정보 전송할 리스트
-                ObjectInfo monsterInfo = new ObjectInfo() { id = monster.Id, objType = (ushort)ObjType.Monster, position = monster.Pos, rotation = monster.Rot };
+                ObjectInfo monsterInfo = new ObjectInfo() { Id = monster.Id, ObjType = (ushort)ObjType.Monster, Position = monster.Pos, Rotation = monster.Rot };
                 monsterInfoList.Add(monsterInfo);
             }
 
             // 몬스터 위치 정보 클라에 전송
-            ObjListPacket monsterPacket = new ObjListPacket() { messageType = (ushort)MsgType.MonsterInfoList, Infos = monsterInfoList };
+            ObjListPacket monsterPacket = new ObjListPacket() { MessageType = (ushort)MsgType.MonsterInfoList, Infos = monsterInfoList };
             ArraySegment<byte> monsterSegment = monsterPacket.Write();
             SessionManager.Instance.BroadcastAll(monsterSegment); 
         }

@@ -10,10 +10,10 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    public GameObject Smoke;          // 스모그 (발포 시 연기 나도록)
-    public Transform[] WheelObjects;  // 바퀴 오브젝트들
-    public Transform Muzzle;          // 총구
-    public bool IsMine = false;       // 본인 오브젝트인지
+    public GameObject Smoke;         // 스모그 (발포 시 연기 나도록)
+    public Transform[] WheelObjects; // 바퀴 오브젝트들
+    public Transform Muzzle;         // 총구
+    public bool IsMine = false;      // 본인 오브젝트인지
 
     private Camera _camera; // 카메라
     private long _clientId; // 클라이언트 아이디
@@ -35,10 +35,10 @@ public class PlayerController : MonoBehaviour
     private ParticleSystem _smokeParticle; // 스모그 파티클
 
     [SerializeField]
-    private Image _hpBar;
-    private int _maxHp = 100;
-    private int _curHp = 100;
-    private bool _onUpdateHpBar = false;
+    private Image _hpBar;     // hp바
+    private int _maxHp = 100; // 최대 체력
+    private int _curHp = 100; // 현재 체력
+    private bool _onUpdateHpBar = false; // hp바 업데이트
 
     private void Start()
     {
@@ -80,8 +80,6 @@ public class PlayerController : MonoBehaviour
     {
         if (info.Id != _clientId || IsMine)
             return;
-
-        //Debug.Log($"Update Other Pos | my id: {ClientProgram.Instance.ClientId}, recv id: {info.id}");
 
         _playerInfo.Position = info.Position;
         _playerInfo.Rotation = info.Rotation;
@@ -130,7 +128,7 @@ public class PlayerController : MonoBehaviour
 
         _isRollback = true;
 
-        Debug.Log("롤백");
+        Debug.Log("rollback");
         _playerInfo.Position = rollbackInfo.Position;
         _playerInfo.Rotation = rollbackInfo.Rotation;
     }
@@ -144,7 +142,6 @@ public class PlayerController : MonoBehaviour
         if (_isRollback)
         {
             _isRollback = false;
-
             transform.position = _playerInfo.Position;
             transform.rotation = Quaternion.Euler(_playerInfo.Rotation);
         }
@@ -172,9 +169,6 @@ public class PlayerController : MonoBehaviour
         movePacket.ObjInfo.Id = _clientId;
         movePacket.ObjInfo.Position = transform.position;
         movePacket.ObjInfo.Rotation = transform.rotation.eulerAngles;
-
-        //Debug.Log($"pos: {{{movePacket.playerInfo.position.x}, {movePacket.playerInfo.position.y}, {movePacket.playerInfo.position.z}}}, " +
-        //    $"rot: {{{movePacket.playerInfo.rotation.x}, {movePacket.playerInfo.rotation.y}, {movePacket.playerInfo.rotation.z}}}");
 
         ArraySegment<byte> segment = movePacket.Write();
         ClientProgram.Instance.Connector.CurrentSession.Send(segment);

@@ -90,6 +90,48 @@ ppt 제작
 notion 정리
 
 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+주석달기/리팩토링 현황
+서버
+MissileManager.cs
+MonsterManager.cs
+ScoreManager.cs
+SessionManager.cs
+StructureManager.cs
+ClientSession.cs
+CSVReader.cs
+SpatialGrid.cs
+
+CollisionSystem.cs
+리팩토링 후 잘 작동하는지 검사
+선분-구/사각형 충돌 주석
+
+Packet.cs 	줄일 수 있으면 줄이기
+ServerProgram.cs 	주석 보충
+ServerCore 부분 	주석 보충
+Utils.cs 		삭제
+
+클라
+ClientProgram.cs
+ServerSession.cs
+MissileController.cs
+MonsterController.cs
+AudioManager.cs
+ChatManager.cs
+MissileManager.cs
+PlayerManager.cs	lock을 넣어야 하는 곳과 넣지 않아도 되는 곳 구분하기
+StructureManager.cs
+
+Packet.cs 	줄일 수 있으면 줄이기
+PlayerController.cs	바퀴 회전 넣을거면 넣기
+UIManager.cs	랭킹판에 자기 점수 넣기
+ServerCore 부분 	주석 보충
+
+웹서버
+
+
+
+패킷 생성/읽기/쓰기 제네럴로 줄일 수 없나?
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
 ● 몬스터 공격
 몬스터 공격한 플레이어에게 데미지 표시 띄우기

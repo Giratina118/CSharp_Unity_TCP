@@ -9,13 +9,12 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
-    public AudioMixer audioMixer;
-    public Slider MasterSoundScrollbar;
-    public Slider BGMScrollbar;
-    public Slider SFXScrollbar;
-
-    public AudioSource BGM;
-    public AudioSource ButtonClickSound;
+    public AudioMixer audioMixer;        // 오디오 믹서
+    public Slider MasterVolumeScrollbar; // 마스터 볼륨 스크롤바
+    public Slider BGMVolumeScrollbar;    // BGM 볼룸 스크롤바
+    public Slider SFXVolumeScrollbar;    // SFX 볼륨 스크롤바
+    public AudioSource BGM;              // BGM
+    public AudioSource ButtonClickSound; // 버튼 클릭음
 
     // 오디오 믹서, 저장할때 사용하는 키값
     private string _masterVolumeKey = "Master";
@@ -63,27 +62,31 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // 마스터 볼륨 설정
     public void SetMasterVolume(float volume)
     {
         // 오디오 믹서의 값은 -80 ~ 0까지이기 때문에 0.0001 ~ 1의 Log10 * 20을 한다.
         audioMixer.SetFloat(_masterVolumeKey, Mathf.Log10(volume) * 20);
     }
 
+    // BGM 볼륨 설정
     public void SetBGMVolume(float volume)
     {
         audioMixer.SetFloat(_bgmVolumeKey, Mathf.Log10(volume) * 20);
     }
 
+    // SFX 볼륨 설정
     public void SetSFXVolume(float volume)
     {
         audioMixer.SetFloat(_sfxVolumeKey, Mathf.Log10(volume) * 20);
     }
 
+    // 볼륨 설정 저장
     public void Save()
     {
-        _masterVolume = MasterSoundScrollbar.value;
-        _bgmVolume = BGMScrollbar.value;
-        _sfxVolume = SFXScrollbar.value;
+        _masterVolume = MasterVolumeScrollbar.value;
+        _bgmVolume = BGMVolumeScrollbar.value;
+        _sfxVolume = SFXVolumeScrollbar.value;
 
         PlayerPrefs.SetFloat(_masterVolumeKey, _masterVolume);
         PlayerPrefs.SetFloat(_bgmVolumeKey, _bgmVolume);
@@ -91,10 +94,11 @@ public class AudioManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    // 볼륨 저장 정보 불러오기
     public void SetVolume()
     {
-        MasterSoundScrollbar.value = _masterVolume;
-        BGMScrollbar.value = _bgmVolume;
-        SFXScrollbar.value = _sfxVolume;
+        MasterVolumeScrollbar.value = _masterVolume;
+        BGMVolumeScrollbar.value = _bgmVolume;
+        SFXVolumeScrollbar.value = _sfxVolume;
     }
 }

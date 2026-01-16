@@ -16,12 +16,6 @@ namespace Server
 {
     public class CSVReader
     {
-        enum MonsterKey
-        {
-            Ray = 1001,
-            Bee = 2001,
-        }
-
         // 몬스터 기본 정보
         public struct MonsterData
         {
@@ -36,11 +30,11 @@ namespace Server
         // 몬스터 스폰 정보
         public struct MonsterSpawnData
         {
-            public int Type;
-            public float xPos;
+            public int Type;   // 몬스터 유형
+            public float xPos; // 스폰 위치
             public float yPos;
             public float zPos;
-            public float xRot;
+            public float xRot; // 스폰 방향
             public float yRot;
             public float zRot;
         }
@@ -48,7 +42,7 @@ namespace Server
         // 건물 기본 정보
         public struct StructureData
         {
-            public int Type;
+            public int Type;    // 건물 유형
             public float XSize; // 크기
             public float YSize;
             public float ZSize;
@@ -57,18 +51,19 @@ namespace Server
         // 건물 스폰 정보
         public struct StructureSpawnData
         {
-            public int Type;
-            public float XPos; // 위치
+            public int Type;   // 건물 유형
+            public float XPos; // 스폰 위치
             public float YPos;
             public float ZPos;
         }
 
 
+        // csv 데이터 읽기
         public static List<T> Load<T>(string path, int skipLineCount, Func<string[], T> parser)
         {
             List<T> result = new List<T>();
 
-            // 자원이 끝나면 자동으로 Dispose() 호출
+            // 끝나면 자동으로 Dispose() 호출
             using (StreamReader reader = new StreamReader(path))
             {
                 for (int i = 0; i < skipLineCount; i++) // 컬럼명 건너뛰기
@@ -88,7 +83,7 @@ namespace Server
             return result;
         }
 
-        // 몬스터 데이터
+        // 몬스터 데이터 파싱
         public static Dictionary<int, MonsterData> LoadMonsterData(string path)
         {
             Dictionary<int, MonsterData> result = new Dictionary<int, MonsterData>();
@@ -114,7 +109,7 @@ namespace Server
             return result;
         }
 
-        // 몬스터 스폰 데이터
+        // 몬스터 스폰 데이터 파싱
         public static List<MonsterSpawnData> LoadMonsterSpawnData(string path)
         {
             return Load(path, 3, row => new MonsterSpawnData
@@ -129,8 +124,7 @@ namespace Server
             });
         }
 
-
-        // 건물 데이터
+        // 건물 데이터 파싱
         public static Dictionary<int, StructureData> LoadStructureData(string path)
         {
             Dictionary<int, StructureData> result = new Dictionary<int, StructureData>();
@@ -154,7 +148,7 @@ namespace Server
             return result;
         }
 
-        // 건물 스폰 데이터
+        // 건물 스폰 데이터 파싱
         public static List<StructureSpawnData> LoadStructureSpawnData(string path)
         {
             return Load(path, 3, row => new StructureSpawnData

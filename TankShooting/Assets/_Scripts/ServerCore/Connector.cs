@@ -13,7 +13,6 @@ namespace ServerCore
         Func<Session> _sessionFactory;
         public Session CurrentSession { get; private set; }
 
-
         public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory)
         {
             // 휴대폰 설정(=손님 소켓 생성)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Server
 
         private SpatialGrid _grid = SpatialGrid.Instance; // 전체 맵을 작은 구역들로 나눠서 검사 
 
-        // 미사일이 이동한 선분(from -> to) 기반으로 충돌 검사
+        // 미사일이 이동한 선분 기반으로 충돌 검사
         public void MissileCollisionCheck(Vector3 prevPos, Vector3 currPos, Missile missile)
         {
             // 겹치는 셀 목록
@@ -29,79 +30,134 @@ namespace Server
             // 셀 안 오브젝트 충돌 검사
             foreach (GridCell cell in cells)
             {
-                foreach (Structure structure in cell.Structures) // 건물 충돌 체크
-                {
-                    Vector3? collisionPos = CollisionLineRect(prevPos, currPos, structure.Pos, structure.Size);
-
-                    if (collisionPos == null)
-                        continue;
-
-                    float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
-
-                    if (distanceFromCreatedPos < minDistance)
-                    {
-                        Console.WriteLine($"건물 {distanceFromCreatedPos}");
-                        targetStructure = structure;
-                        minDistance = distanceFromCreatedPos;
-                    }
-                }
-
-                foreach (Monster monster in cell.Monsters) // 몬스터 충돌 체크
-                {
-                    if (monster.IsDie)
-                        continue;
-
-                    float combinedRadius = monster.Radius + missile.Radius;
-                    Vector3? collisionPos = CollisionLineSphere(prevPos, missile.Pos, monster.Pos, combinedRadius);
-                    if (collisionPos == null)
-                        continue;
-
-                    float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
-
-                    if (distanceFromCreatedPos < minDistance)
-                    {
-                        Console.WriteLine($"몬스터 {distanceFromCreatedPos}");
-                        targetMonster = monster;
-                        minDistance = distanceFromCreatedPos;
-                    }
-                }
-
-                foreach (ClientSession player in cell.Players) // 플레이어 충돌 체크
-                {
-                    float radius = player.CollisionRadius + missile.Radius;
-                    Vector3? collisionPos = CollisionLineSphere(prevPos, currPos, player.Info.position, radius);
-
-                    if (collisionPos == null)
-                        continue;
-
-                    float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
-
-                    if (distanceFromCreatedPos < minDistance && player.Info.id != missile.ShooterId)
-                    {
-                        Console.WriteLine($"플레이어 {distanceFromCreatedPos}");
-                        targetPlayer = player;
-                        minDistance = distanceFromCreatedPos;
-                    }
-                }
+                StructureCollisionCheck(cell, prevPos, currPos, missile, ref minDistance, ref targetStructure); // 건물-미사일 충돌 체크
+                MissleCollisionCheck(cell, prevPos, currPos, missile, ref minDistance, ref targetMonster);      // 몬스터-미사일 충돌 체크
+                PlayerCollisionCheck(cell, prevPos, currPos, missile, ref minDistance, ref targetPlayer);       // 플레이어-미사일 충돌 체크
             }
 
             // 가장 가까운 충돌만 체크
-            if (targetPlayer != null) // 플레이어 맞음
+            if (targetPlayer != null)         OnHit(missile, targetPlayer);            // 플레이어 맞음
+            else if (targetMonster != null)   OnHit(missile, targetMonster);           // 몬스터 맞음
+            else if (targetStructure != null) MissileManager.Instance.Remove(missile); // 건물 맞음
+        }
+
+        // 건물-미사일 충돌 체크 
+        public void StructureCollisionCheck(GridCell cell, Vector3 prevPos, Vector3 currPos, Missile missile, ref float minDistance, ref Structure? targetStructure)
+        {
+            foreach (Structure structure in cell.Structures) // 건물 충돌 체크
             {
-                Console.WriteLine("플레이어 맞음");
-                OnHit(missile, targetPlayer);
-            }
-            else if (targetMonster != null) // 몬스터 맞음
-            {
-                Console.WriteLine("몬스터 맞음");
-                OnHit(missile, targetMonster);
-            }
-            else if (targetStructure != null) // 건물 맞음
-            {
-                Console.WriteLine("건물 맞음");
-                MissileManager.Instance.Remove(missile); // 미사일 삭제
+                Vector3? collisionPos = CollisionLineRect(prevPos, currPos, structure.Pos, structure.Size);
+
+                if (collisionPos == null)
+                    continue;
+
+                float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
+
+                if (distanceFromCreatedPos < minDistance)
+                {
+                    Console.WriteLine($"건물 {distanceFromCreatedPos}");
+                    targetStructure = structure;
+                    minDistance = distanceFromCreatedPos;
+                }
             }
         }
+
+        // 몬스터-미사일 충돌 체크 
+        public void MissleCollisionCheck(GridCell cell, Vector3 prevPos, Vector3 currPos, Missile missile, ref float minDistance, ref Monster? targetMonster)
+        {
+            foreach (Monster monster in cell.Monsters) // 몬스터 충돌 체크
+            {
+                if (monster.IsDie)
+                    continue;
+
+                float combinedRadius = monster.Radius + missile.Radius;
+                Vector3? collisionPos = CollisionLineSphere(prevPos, currPos, monster.Pos, combinedRadius);
+                if (collisionPos == null)
+                    continue;
+
+                float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
+
+                if (distanceFromCreatedPos < minDistance)
+                {
+                    Console.WriteLine($"몬스터 {distanceFromCreatedPos}");
+                    targetMonster = monster;
+                    minDistance = distanceFromCreatedPos;
+                }
+            }
+        }
+
+        // 플레이어-미사일 충돌 체크 
+        public void PlayerCollisionCheck(GridCell cell, Vector3 prevPos, Vector3 currPos, Missile missile, ref float minDistance, ref ClientSession? targetPlayer)
+        {
+            foreach (ClientSession player in cell.Players) // 플레이어 충돌 체크
+            {
+                float radius = player.CollisionRadius + missile.Radius;
+                Vector3? collisionPos = CollisionLineSphere(prevPos, currPos, player.Info.Position, radius);
+
+                if (collisionPos == null)
+                    continue;
+
+                float distanceFromCreatedPos = Vector3.Distance(missile.CreatedPos, collisionPos.Value);
+
+                if (distanceFromCreatedPos < minDistance && player.Info.Id != missile.ShooterId)
+                {
+                    Console.WriteLine($"플레이어 {distanceFromCreatedPos}");
+                    targetPlayer = player;
+                    minDistance = distanceFromCreatedPos;
+                }
+            }
+        }
+
+        // 몬스터 미사일 충돌 후 처리
+        private void OnHit(Missile missile, Monster monster)
+        {
+            long shooter = missile.ShooterId;
+
+            missile.IsRemoved = true;
+            monster.Hit(missile.Damage, missile.ShooterId); // 몬스터 데미지 처리
+            Console.WriteLine($"몬스터 맞춤 {monster.Type}, {monster.CurHP}/{monster.MaxHP}");
+
+            MissileManager.Instance.Remove(missile); // 미사일 제거
+
+            // 몬스터 데미지, 체력 전달
+            DamagePacket damagePacket = new DamagePacket()
+            { MessageType = (ushort)MsgType.DamageMonster, HitId = monster.Id, AttackId = missile.ShooterId, Damage = missile.Damage, CurHp = monster.CurHP, MaxHp = monster.MaxHP };
+            ArraySegment<byte> segment = damagePacket.Write();
+            if (damagePacket != null)
+                SessionManager.Instance.BroadcastAll(segment);
+        }
+
+        // 플레이어 미사일 충돌 후 처리
+        private void OnHit(Missile missile, ClientSession player)
+        {
+            missile.IsRemoved = true;
+
+            if (player.CurHP <= missile.Damage) // 죽음
+            {
+                // 처치 채팅 전송(킬 로그)
+                ChatPacket chatPacket = new ChatPacket() { PlayerId = -1, Chat = $"{SessionManager.Instance.Sessions[missile.ShooterId].Name} --kill--> {player.Name}" };
+                ArraySegment<byte> chatSegment = chatPacket.Write();
+                if (chatPacket != null)
+                    SessionManager.Instance.BroadcastAll(chatSegment);
+
+                // 점수 전송
+                ScoreManager.Instance.AddScore(missile.ShooterId, ScoreManager.Instance.ScoreDic[player.Info.Id] / 2);
+            }
+            else // 안 죽음
+            {
+                // 플레이어 데미지 전달
+                DamagePacket damagePacket = new DamagePacket() { MessageType = (ushort)MsgType.DamagePlayer, HitId = player.Info.Id, AttackId = missile.ShooterId, Damage = missile.Damage, CurHp = player.CurHP };
+                ArraySegment<byte> segment = damagePacket.Write();
+                if (damagePacket != null)
+                    SessionManager.Instance.BroadcastAll(segment);
+            }
+
+            player.Hit(missile.Damage);
+            Console.WriteLine($"플레이어 맞춤 {player.Name}");
+
+            MissileManager.Instance.Remove(missile); // 미사일 제거
+        }
+
 
         // 선분, 구 충돌
         private Vector3? CollisionLineSphere(Vector3 lineStartPos, Vector3 lineEndPos, Vector3 sphereCenter, float sphereRadius)
@@ -188,56 +244,6 @@ namespace Server
                 return null;
 
             return lineStartPos + rayDir * tEnter;
-        }
-
-        // 몬스터 미사일 충돌 후 처리
-        private void OnHit(Missile missile, Monster monster)
-        {
-            long shooter = missile.ShooterId;
-
-            missile.IsRemoved = true;
-            monster.Hit(missile.Damage, missile.ShooterId); // 몬스터 데미지 처리
-            Console.WriteLine($"몬스터 맞춤 {monster.Type}, {monster.CurHP}/{monster.MaxHP}");
-
-            MissileManager.Instance.Remove(missile); // 미사일 제거
-
-            // 몬스터 데미지, 체력 전달
-            DamagePacket damagePacket = new DamagePacket() 
-            { messageType = (ushort)MsgType.DamageMonster, hitId = monster.Id, attackId = missile.ShooterId, damage = missile.Damage, curHp = monster.CurHP, maxHp = monster.MaxHP };
-            ArraySegment<byte> segment = damagePacket.Write();
-            if (damagePacket != null)
-                SessionManager.Instance.BroadcastAll(segment);
-        }
-
-        // 플레이어 미사일 충돌 후 처리
-        private void OnHit(Missile missile, ClientSession player)
-        {
-            missile.IsRemoved = true;
-            
-            if (player.CurHP <= missile.Damage) // 죽음
-            {
-                // 처치 채팅 전송(킬 로그)
-                ChatPacket chatPacket = new ChatPacket() { playerId = -1, chat = $"{SessionManager.Instance.Sessions[missile.ShooterId].Name} --kill--> {player.Name}" };
-                ArraySegment<byte> chatSegment = chatPacket.Write();
-                if (chatPacket != null)
-                    SessionManager.Instance.BroadcastAll(chatSegment);
-
-                // 점수 전송
-                ScoreManager.Instance.AddScore(missile.ShooterId, ScoreManager.Instance.ScoreDic[player.Info.id] / 2);
-            }
-            else // 안 죽음
-            {
-                // 플레이어 데미지 전달
-                DamagePacket damagePacket = new DamagePacket() { messageType = (ushort)MsgType.DamagePlayer, hitId = player.Info.id, attackId = missile.ShooterId, damage = missile.Damage, curHp = player.CurHP };
-                ArraySegment<byte> segment = damagePacket.Write();
-                if (damagePacket != null)
-                    SessionManager.Instance.BroadcastAll(segment);
-            }
-
-            player.Hit(missile.Damage);
-            Console.WriteLine($"플레이어 맞춤 {player.Name}");
-
-            MissileManager.Instance.Remove(missile); // 미사일 제거
         }
     }
 }
